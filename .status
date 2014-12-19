@@ -15,49 +15,49 @@ lib/*: Skip
 # difference between transformed an untransformed code.
 test/*: Skip
 
-*/scheduled_server_test: Pass, Fail # 13524
-*/scheduled_process_test: Pass, Slow # Issue 9231
-*/scheduled_stream/stream_matcher_test: Pass, Slow
+build/test/scheduled_server_test: Pass, Fail # 13524
+build/test/scheduled_process_test: Pass, Slow # Issue 9231
+build/test/scheduled_stream/stream_matcher_test: Pass, Slow
 
 [ $runtime == vm && $mode == debug]
-*/scheduled_server_test: Pass, Fail, Slow # 13524
+build/test/scheduled_server_test: Pass, Fail, Slow # 13524
 
 [ $runtime == jsshell ]
-*/scheduled_future_matchers_test: RuntimeError #Issue 21005
-*/scheduled_stream/stream_matcher_test: RuntimeError #Issue 21005
-*/scheduled_test/abort_test: RuntimeError #Issue 21005
-*/scheduled_test/current_schedule_current_task_test: RuntimeError #Issue 21005
-*/scheduled_test/current_schedule_errors_test: RuntimeError #Issue 21005
-*/scheduled_test/current_schedule_state_test: RuntimeError #Issue 21005
-*/scheduled_test/nested_task_test: RuntimeError #Issue 21005
-*/scheduled_test/on_complete_test: RuntimeError #Issue 21005
-*/scheduled_test/on_exception_test: RuntimeError #Issue 21005
-*/scheduled_test/set_up_test: RuntimeError #Issue 21005
-*/scheduled_test/simple_test: RuntimeError #Issue 21005
-*/scheduled_test/task_return_value_test: RuntimeError #Issue 21005
-*/scheduled_test/tear_down_test: RuntimeError #Issue 21005
-*/scheduled_test/unhandled_error_test: RuntimeError #Issue 21005
-*/scheduled_test/wrap_future_test: RuntimeError #Issue 21005
-*/unittest_compatibility_test: RuntimeError #Issue 21005
+build/test/scheduled_future_matchers_test: RuntimeError #Issue 21005
+build/test/scheduled_stream/stream_matcher_test: RuntimeError #Issue 21005
+build/test/scheduled_test/abort_test: RuntimeError #Issue 21005
+build/test/scheduled_test/current_schedule_current_task_test: RuntimeError #Issue 21005
+build/test/scheduled_test/current_schedule_errors_test: RuntimeError #Issue 21005
+build/test/scheduled_test/current_schedule_state_test: RuntimeError #Issue 21005
+build/test/scheduled_test/nested_task_test: RuntimeError #Issue 21005
+build/test/scheduled_test/on_complete_test: RuntimeError #Issue 21005
+build/test/scheduled_test/on_exception_test: RuntimeError #Issue 21005
+build/test/scheduled_test/set_up_test: RuntimeError #Issue 21005
+build/test/scheduled_test/simple_test: RuntimeError #Issue 21005
+build/test/scheduled_test/task_return_value_test: RuntimeError #Issue 21005
+build/test/scheduled_test/tear_down_test: RuntimeError #Issue 21005
+build/test/scheduled_test/unhandled_error_test: RuntimeError #Issue 21005
+build/test/scheduled_test/wrap_future_test: RuntimeError #Issue 21005
+build/test/unittest_compatibility_test: RuntimeError #Issue 21005
 
 [ $runtime == ie10 || $runtime == ie11 ]
-*/scheduled_test/current_schedule_errors_test: Skip # Issue 21007
-*/scheduled_test/nested_task_test: Timeout # Skip 21007
-*/scheduled_test/out_of_band_task_test: Skip # Issue 21007
-*/scheduled_test/signal_error_test: Skip # Issue 21007
-*/scheduled_test/task_return_value_test: Skip # Issue 21007
-*/scheduled_test/timeout_test: Skip # Issue 21007
-*/scheduled_test/wrap_async_test: Skip # Issue 21007
-*/scheduled_test/wrap_future_test: Skip # Issue 21007
+build/test/scheduled_test/current_schedule_errors_test: Skip # Issue 21007
+build/test/scheduled_test/nested_task_test: Timeout # Skip 21007
+build/test/scheduled_test/out_of_band_task_test: Skip # Issue 21007
+build/test/scheduled_test/signal_error_test: Skip # Issue 21007
+build/test/scheduled_test/task_return_value_test: Skip # Issue 21007
+build/test/scheduled_test/timeout_test: Skip # Issue 21007
+build/test/scheduled_test/wrap_async_test: Skip # Issue 21007
+build/test/scheduled_test/wrap_future_test: Skip # Issue 21007
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
-*/descriptor/*: RuntimeError # 13921
-*/scheduled_future_matchers_test: RuntimeError # 13921
-*/scheduled_process_test: RuntimeError # 13921
-*/scheduled_stream/stream_matcher_test: RuntimeError # 13921
-*/scheduled_test/*: RuntimeError # 13921
+build/test/descriptor/*: RuntimeError # 13921
+build/test/scheduled_future_matchers_test: RuntimeError # 13921
+build/test/scheduled_process_test: RuntimeError # 13921
+build/test/scheduled_stream/stream_matcher_test: RuntimeError # 13921
+build/test/scheduled_test/*: RuntimeError # 13921
 
 [ $browser ]
-*/scheduled_process_test: Skip # Uses dart:io
-*/scheduled_server_test: Skip # Uses dart:io
-*/descriptor/*: Skip # Uses dart:io
+build/test/scheduled_process_test: Skip # Uses dart:io
+build/test/scheduled_server_test: Skip # Uses dart:io
+build/test/descriptor/*: Skip # Uses dart:io
