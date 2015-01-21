@@ -243,7 +243,7 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
       stream.isBroadcast ? new StreamController.broadcast(sync: true)
                          : new StreamController(sync: true);
   var controllerStream = controller.stream;
-  var subscription = stream.listen((value) {
+  stream.listen((value) {
     if (!controller.isClosed) controller.add(value);
   }, onError: (error, [stackTrace]) {
     if (!controller.isClosed) controller.addError(error, stackTrace);

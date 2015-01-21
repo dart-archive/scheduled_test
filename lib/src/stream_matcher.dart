@@ -390,10 +390,3 @@ class _IsDoneMatcher extends StreamMatcher {
 
   String toString() => 'is done';
 }
-
-/// Returns a [Future] that completes to the next value emitted by [stream]
-/// without actually consuming that value.
-Future _peek(ScheduledStream stream) {
-  var fork = stream.fork();
-  return fork.next().whenComplete(fork.close);
-}

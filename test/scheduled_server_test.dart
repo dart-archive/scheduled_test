@@ -114,12 +114,10 @@ void _test(message) {
 
   expectTestsPass("a handler times out waiting to be hit", () {
     var clock = mock_clock.mock()..run();
-    var timeOfException;
     var errors;
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 2);
       currentSchedule.onException.schedule(() {
-        timeOfException = clock.time;
         errors = currentSchedule.errors;
       });
 

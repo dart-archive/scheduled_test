@@ -108,7 +108,6 @@ void _test(message) {
       "before the test completes plays nicely with other out-of-band callbacks",
       () {
     mock_clock.mock().run();
-    var errors;
     var onExceptionCallbackRun = false;
     var onCompleteRunAfterOnExceptionCallback = false;
     test('test 1', () {
