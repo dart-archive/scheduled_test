@@ -1,3 +1,7 @@
+## 0.11.7+1
+
+* Support version `0.6.0` of `shelf`.
+
 ## 0.11.7
 
 * Bumped the version constraint for `unittest`.

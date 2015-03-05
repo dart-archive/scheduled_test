@@ -58,9 +58,9 @@ class Handler {
         // while executing a handler.
         chainToCompleter(schedule(() {
           return syncFuture(() {
-            if (request.method != method || request.url.path != path) {
+            if (request.method != method || request.requestedUri.path != path) {
               fail("'${server.description}' expected $method $path, "
-                   "but got ${request.method} ${request.url.path}.");
+                   "but got ${request.method} ${request.requestedUri.path}.");
             }
 
             return fn(request);
