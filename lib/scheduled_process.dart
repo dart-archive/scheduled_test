@@ -294,6 +294,13 @@ class ScheduledProcess {
         "closing stdin for process '$description'");
   }
 
+  /// Sends [signal] to the process.
+  void signal(ProcessSignal signal) {
+    schedule(() {
+      return _process.then((process) => process.kill(signal));
+    }, "sending signal $signal");
+  }
+
   /// Kills the process, and waits until it's dead.
   void kill() {
     if (_endScheduled) {

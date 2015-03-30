@@ -219,6 +219,19 @@ void _test(message) {
       process.stdout.expect('stdin closed');
     });
   });
+
+  expectTestsPass("signal sends a signal to the subprocess", () {
+    test('test', () {
+      var process = startDartProcess(r'''
+ProcessSignal.SIGHUP.watch().listen((_) => print("HUP"));
+print("ready");
+''');
+      process.stdout.expect('ready');
+      process.signal(ProcessSignal.SIGHUP);
+      process.stdout.expect('HUP');
+      process.kill();
+    });
+  });
 }
 
 ScheduledProcess startDartProcess(String script) {

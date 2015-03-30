@@ -1,3 +1,7 @@
+## 0.11.8
+
+* Add a `ScheduledProcess.signal()` method for sending signals to subprocesses.
+
 ## 0.11.7+1
 
 * Support version `0.6.0` of `shelf`.
