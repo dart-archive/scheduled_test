@@ -1,3 +1,7 @@
+## 0.11.8+1
+
+* Bump the version constraint for `unittest`.
+
 ## 0.11.8
 
 * Add a `ScheduledProcess.signal()` method for sending signals to subprocesses.
