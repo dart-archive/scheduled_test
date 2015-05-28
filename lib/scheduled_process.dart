@@ -207,7 +207,7 @@ class ScheduledProcess {
   /// debug information if an error occurs.
   void _scheduleExceptionCleanup() {
     currentSchedule.onComplete.schedule(() {
-      if (currentSchedule.errors.isEmpty) return;
+      if (currentSchedule.errors.isEmpty) return null;
 
       _stdoutCanceller();
       _stderrCanceller();
