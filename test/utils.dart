@@ -75,7 +75,7 @@ void expectTestFails(String description, Future testBody(),
   expectTestsPass(description, () {
     var errors;
     test('test body', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

@@ -117,7 +117,7 @@ void _test(message) {
     var errors;
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 2);
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

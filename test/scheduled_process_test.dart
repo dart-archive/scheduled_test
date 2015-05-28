@@ -25,7 +25,7 @@ void _test(message) {
   expectTestsPass("a process must have kill() or shouldExit() called", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -58,7 +58,7 @@ void _test(message) {
       "an error", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -126,7 +126,7 @@ void _test(message) {
       "block the test", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

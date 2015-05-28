@@ -50,28 +50,11 @@ void _test(message) {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.errors contains the error in the '
-      'onException queue', () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onException.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      throw 'error';
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error']));
-    });
-  }, passing: ['test 2']);
-
   expectTestsPass('currentSchedule.errors contains an error passed into '
       'signalError synchronously', () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -88,7 +71,7 @@ void _test(message) {
       'signalError asynchronously', () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -105,7 +88,7 @@ void _test(message) {
       'signalError out-of-band', () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -120,43 +103,13 @@ void _test(message) {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass('currentSchedule.errors contains errors from both the task '
-      'queue and the onException queue in onComplete', () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      currentSchedule.onException.schedule(() {
-        throw 'error2';
-      });
-
-      throw 'error1';
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error1', 'error2']));
-    });
-  }, passing: ['test 2']);
-
   expectTestsPass('currentSchedule.errors contains multiple out-of-band errors '
-      'from both the main task queue and onException in onComplete', () {
+      'from the main task queue in onComplete', () {
     mock_clock.mock().run();
     var errors;
     test('test 1', () {
       currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
-      });
-
-      currentSchedule.onException.schedule(() {
-        sleep(1).then(wrapAsync((_) {
-          throw 'error3';
-        }));
-        sleep(2).then(wrapAsync((_) {
-          throw 'error4';
-        }));
       });
 
       sleep(1).then(wrapAsync((_) {
@@ -170,27 +123,17 @@ void _test(message) {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error),
-          orderedEquals(['error1', 'error2', 'error3', 'error4']));
+          orderedEquals(['error1', 'error2']));
     });
   }, passing: ['test 2']);
 
   expectTestsPass('currentSchedule.errors contains multiple out-of-band errors '
-      'from both the main task queue and onException in onComplete reported '
-      'via wrapFuture', () {
+      'from the main task queue in onComplete reported via wrapFuture', () {
     mock_clock.mock().run();
     var errors;
     test('test 1', () {
       currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
-      });
-
-      currentSchedule.onException.schedule(() {
-        wrapFuture(sleep(1).then((_) {
-          throw 'error3';
-        }));
-        wrapFuture(sleep(2).then((_) {
-          throw 'error4';
-        }));
       });
 
       wrapFuture(sleep(1).then((_) {
@@ -204,7 +147,7 @@ void _test(message) {
     test('test 2', () {
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       expect(errors.map((e) => e.error),
-          orderedEquals(['error1', 'error2', 'error3', 'error4']));
+          orderedEquals(['error1', 'error2']));
     });
   }, passing: ['test 2']);
 

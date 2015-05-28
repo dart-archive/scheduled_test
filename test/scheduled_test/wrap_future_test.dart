@@ -88,7 +88,7 @@ void _test(message) {
       "wrapFuture should report exceptions once", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

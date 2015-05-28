@@ -25,7 +25,7 @@ void _test(message) {
       "an out-of-band error", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -51,7 +51,7 @@ void _test(message) {
       "should signal an out-of-band error", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -69,7 +69,7 @@ void _test(message) {
       "signal an out-of-band error", () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

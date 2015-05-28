@@ -176,9 +176,9 @@ class ScheduledProcess {
   /// exception will be signaled to the schedule.
   void _handleExit(Completer exitCodeCompleter) {
     // We purposefully avoid using wrapFuture here. If an error occurs while a
-    // process is running, we want the schedule to move to the onException
-    // queue where the process will be killed, rather than blocking the tasks
-    // queue waiting for the process to exit.
+    // process is running, we want the schedule to move to the onComplete queue
+    // where the process will be killed, rather than blocking the tasks queue
+    // waiting for the process to exit.
     _process.then((p) => Chain.track(p.exitCode)).then((exitCode) {
       _actualExitTask = currentSchedule.currentTask;
       exitCodeCompleter.complete(exitCode);
@@ -206,7 +206,9 @@ class ScheduledProcess {
   /// Schedule an exception handler that will clean up the process and provide
   /// debug information if an error occurs.
   void _scheduleExceptionCleanup() {
-    currentSchedule.onException.schedule(() {
+    currentSchedule.onComplete.schedule(() {
+      if (currentSchedule.errors.isEmpty) return;
+
       _stdoutCanceller();
       _stderrCanceller();
 
@@ -216,7 +218,7 @@ class ScheduledProcess {
       if (!_exitCode.hasValue) {
         killedPrematurely = true;
         _process.value.kill(ProcessSignal.SIGKILL);
-        // Ensure that the onException queue waits for the process to actually
+        // Ensure that the onComplete queue waits for the process to actually
         // exit after being killed.
         wrapFuture(_process.value.exitCode, "waiting for process "
             "'$description' to die");

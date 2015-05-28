@@ -65,19 +65,19 @@ void _test(message) {
     test('test 2', () => expect('foo', equals('foo')));
   });
 
-  expectTestsPass('synchronous errors in setUp will cause onException to run',
+  expectTestsPass('synchronous errors in setUp will cause onComplete to run',
       () {
-    var onExceptionRun = false;
+    var onCompleteRun = false;
     setUp(() {
-      currentSchedule.onException.schedule(() {
-        onExceptionRun = true;
+      currentSchedule.onComplete.schedule(() {
+        onCompleteRun = true;
       });
 
-      if (!onExceptionRun) expect('foo', equals('bar'));
+      if (!onCompleteRun) expect('foo', equals('bar'));
     });
 
     test('test 1', () => expect('foo', equals('foo')));
-    test('test 2', () => expect(onExceptionRun, isTrue));
+    test('test 2', () => expect(onCompleteRun, isTrue));
   }, passing: ['test 2']);
 
   expectTestsPass("setUp applies to child groups", () {

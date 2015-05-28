@@ -71,7 +71,7 @@ void _test(message) {
       () {
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -93,7 +93,7 @@ void _test(message) {
     var error = 'oh no!';
     var errors;
     test('test 1', () {
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

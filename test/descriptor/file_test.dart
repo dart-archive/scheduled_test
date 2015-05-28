@@ -66,7 +66,7 @@ void _test(message) {
     test('test 1', () {
       scheduleSandbox();
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -93,7 +93,7 @@ void _test(message) {
     test('test 1', () {
       scheduleSandbox();
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -154,7 +154,7 @@ void _test(message) {
     test('test 1', () {
       scheduleSandbox();
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -206,7 +206,7 @@ void _test(message) {
     test('test 1', () {
       scheduleSandbox();
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -246,7 +246,7 @@ void _test(message) {
     test('test 1', () {
       scheduleSandbox();
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

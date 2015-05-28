@@ -1,3 +1,8 @@
+## 0.12.0
+
+* Remove the `Schedule.onException` queue. This was largely redundant with
+  `Schedule.onComplete` and complicated the implementation.
+
 ## 0.11.8+1
 
 * Bump the version constraint for `unittest`.

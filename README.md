@@ -39,8 +39,8 @@ run before the tasks scheduled by tests in that group. [currentSchedule] is
 also set in the [setUp] callback.
 
 This package doesn't have an explicit `tearDown` method. Instead, the
-[currentSchedule.onComplete] and [currentSchedule.onException] task queues
-can have tasks scheduled during [setUp]. For example:
+[currentSchedule.onComplete] task queue can have tasks scheduled during [setUp].
+For example:
 
 ```dart
 import 'package:scheduled_test/scheduled_test.dart';
@@ -106,20 +106,18 @@ void main() {
 
 ## Out-of-Band Callbacks
 
-Sometimes your tests will have callbacks that don't fit into the schedule.
-It's important that errors in these callbacks are still registered, though,
-and that [Schedule.onException] and [Schedule.onComplete] still run after
-they finish. When using `unittest`, you wrap these callbacks with
-`expectAsyncN`; when using `scheduled_test`, you use [wrapAsync] or
-[wrapFuture].
+Sometimes your tests will have callbacks that don't fit into the schedule. It's
+important that errors in these callbacks are still registered, though, and that
+[Schedule.onComplete] still runs after they finish. When using `unittest`, you
+wrap these callbacks with `expectAsyncN`; when using `scheduled_test`, you use
+[wrapAsync] or [wrapFuture].
 
-[wrapAsync] has two important functions. First, any errors that occur in it
-will be passed into the [Schedule] instead of causing the whole test to
-crash. They can then be handled by [Schedule.onException] and
-[Schedule.onComplete]. Second, a task queue isn't considered finished until
-all of its [wrapAsync]-wrapped functions have been called. This ensures that
-[Schedule.onException] and [Schedule.onComplete] will always run after all
-the test code in the main queue.
+[wrapAsync] has two important functions. First, any errors that occur in it will
+be passed into the [Schedule] instead of causing the whole test to crash. They
+can then be handled by [Schedule.onComplete]. Second, a task queue isn't
+considered finished until all of its [wrapAsync]-wrapped functions have been
+called. This ensures that [Schedule.onComplete] will always run after all the
+test code in the main queue.
 
 Note that the [completes], [completion], and [throws] matchers use
 [wrapAsync] internally, so they're safe to use in conjunction with scheduled

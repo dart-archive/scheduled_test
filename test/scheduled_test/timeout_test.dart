@@ -22,7 +22,7 @@ void _test(message) {
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 1);
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -43,7 +43,7 @@ void _test(message) {
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 1);
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -85,8 +85,8 @@ void _test(message) {
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 3);
 
-      currentSchedule.onException.schedule(() => sleep(2));
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() => sleep(2));
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -108,19 +108,14 @@ void _test(message) {
       "before the test completes plays nicely with other out-of-band callbacks",
       () {
     mock_clock.mock().run();
-    var onExceptionCallbackRun = false;
-    var onCompleteRunAfterOnExceptionCallback = false;
+    var onCompleteCallbackRun = false;
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 2);
 
-      currentSchedule.onException.schedule(() {
-        sleep(1).then(wrapAsync((_) {
-          onExceptionCallbackRun = true;
-        }));
-      });
-
       currentSchedule.onComplete.schedule(() {
-        onCompleteRunAfterOnExceptionCallback = onExceptionCallbackRun;
+        sleep(1).then(wrapAsync((_) {
+          onCompleteCallbackRun = true;
+        }));
       });
 
       sleep(3).then(wrapAsync((_) {
@@ -129,7 +124,7 @@ void _test(message) {
     });
 
     test('test 2', () {
-      expect(onCompleteRunAfterOnExceptionCallback, isTrue);
+      expect(onCompleteCallbackRun, isTrue);
     });
   }, passing: ['test 2']);
 
@@ -140,7 +135,7 @@ void _test(message) {
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 2);
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 
@@ -164,7 +159,7 @@ void _test(message) {
     test('test 1', () {
       currentSchedule.timeout = new Duration(milliseconds: 2);
 
-      currentSchedule.onException.schedule(() {
+      currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;
       });
 

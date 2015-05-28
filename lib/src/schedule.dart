@@ -15,8 +15,9 @@ import 'substitute_future.dart';
 import 'task.dart';
 import 'utils.dart';
 
-/// The schedule of tasks to run for a single test. This has three separate task
-/// queues: [tasks], [onComplete], and [onException]. It also provides
+/// The schedule of tasks to run for a single test.
+///
+/// This has two task queues: [tasks] and [onComplete]. It also provides
 /// visibility into the current state of the schedule.
 class Schedule {
   /// The main task queue for the schedule. These tasks are run before the other
@@ -24,26 +25,9 @@ class Schedule {
   TaskQueue get tasks => _tasks;
   TaskQueue _tasks;
 
-  /// The queue of tasks to run if an error is caught while running [tasks]. The
-  /// error will be available in [errors]. These tasks won't be run if no error
-  /// occurs. Note that expectation failures count as errors.
-  ///
-  /// This queue runs before [onComplete], and errors in [onComplete] will not
-  /// cause this queue to be run.
-  ///
-  /// If an error occurs in a task in this queue, all further tasks will be
-  /// skipped.
-  TaskQueue get onException => _onException;
-  TaskQueue _onException;
-
-  /// The queue of tasks to run after [tasks] and possibly [onException] have
-  /// run. This queue will run whether or not an error occurred. If one did, it
-  /// will be available in [errors]. Note that expectation failures count as
-  /// errors.
-  ///
-  /// This queue runs after [onException]. If an error occurs while running
-  /// [onException], that error will be available in [errors] after the original
-  /// error.
+  /// The queue of tasks to run after [tasks] has run. This queue will run
+  /// whether or not an error occurred. If one did, it will be available in
+  /// [errors]. Note that expectation failures count as errors.
   ///
   /// If an error occurs in a task in this queue, all further tasks will be
   /// skipped.
@@ -63,11 +47,9 @@ class Schedule {
   /// Errors thrown by the task queues.
   ///
   /// When running tasks in [tasks], this will always be empty. If an error
-  /// occurs in [tasks], it will be added to this list and then [onException]
-  /// will be run. If an error occurs there as well, it will be added to this
-  /// list and [onComplete] will be run. Errors thrown during [onComplete] will
-  /// also be added to this list, although no scheduled tasks will be run
-  /// afterwards.
+  /// occurs in [tasks], it will be added to this list. Errors thrown during
+  /// [onComplete] will also be added to this list, although no scheduled tasks
+  /// will be run afterwards.
   ///
   /// Any out-of-band callbacks that throw errors will also have those errors
   /// added to this list.
@@ -79,9 +61,10 @@ class Schedule {
   List<String> get debugInfo => new UnmodifiableListView<String>(_debugInfo);
   final _debugInfo = <String>[];
 
-  /// The task queue that's currently being run. One of [tasks], [onException],
-  /// or [onComplete]. This starts as [tasks], and can only be `null` after the
-  /// schedule is done.
+  /// The task queue that's currently being run.
+  ///
+  /// One of [tasks] or [onComplete]. This starts as [tasks], and can only be
+  /// `null` after the schedule is done.
   TaskQueue get currentQueue =>
     _state == ScheduleState.DONE ? null : _currentQueue;
   TaskQueue _currentQueue;
@@ -92,10 +75,9 @@ class Schedule {
   /// interactions with the schedule, *not* the maximum time an entire test is
   /// allowed. See also [heartbeat].
   ///
-  /// If a task queue times out, an error will be raised that can be handled as
-  /// usual in the [onException] and [onComplete] queues. If [onException] times
-  /// out, that can only be handled in [onComplete]; if [onComplete] times out,
-  /// that cannot be handled.
+  /// If [tasks] times out, an error will be raised that can be handled as usual
+  /// in the [onComplete] queue. If [onComplete] times out, that cannot be
+  /// handled.
   ///
   /// If a task times out and then later completes with an error, that error
   /// cannot be handled. The user will still be notified of it.
@@ -113,21 +95,20 @@ class Schedule {
   Schedule() {
     _tasks = new TaskQueue._("tasks", this);
     _onComplete = new TaskQueue._("onComplete", this);
-    _onException = new TaskQueue._("onException", this);
     _currentQueue = _tasks;
 
     heartbeat();
   }
 
   /// Sets up this schedule by running [setUp], then runs all the task queues in
-  /// order. Any errors in [setUp] will cause [onException] to run.
+  /// order.
   Future run(void setUp()) {
     return new Future.value().then((_) {
       try {
         setUp();
       } catch (e, stackTrace) {
-        // Even though the scheduling failed, we need to run the onException and
-        // onComplete queues, so we set the schedule state to RUNNING.
+        // Even though the scheduling failed, we need to run the onComplete
+        // queue, so we set the schedule state to RUNNING.
         _state = ScheduleState.RUNNING;
         throw new ScheduleError.from(this, e, stackTrace: stackTrace);
       }
@@ -135,19 +116,9 @@ class Schedule {
       _state = ScheduleState.RUNNING;
       return tasks._run();
     }).catchError((error, stackTrace) {
+      // Register the error in the [errors] list, then re-throw it.
       _addError(error, stackTrace);
-      return onException._run().catchError((innerError, innerTrace) {
-        // If an error occurs in a task in the onException queue, make sure it's
-        // registered in the error list and re-throw it. We could also re-throw
-        // `error`; ultimately, all the errors will be shown to the user if any
-        // ScheduleError is thrown.
-        _addError(innerError, innerTrace);
-        throw innerError;
-      }).then((_) {
-        // If there are no errors in the onException queue, re-throw the
-        // original error that caused it to run.
-        throw error;
-      });
+      throw error;
     }).whenComplete(() {
       return onComplete._run().catchError((error, stackTrace) {
         // If an error occurs in a task in the onComplete queue, make sure it's
@@ -322,7 +293,7 @@ class ScheduleState {
   static const SET_UP = const ScheduleState._("SET_UP");
 
   /// The schedule is actively running tasks. This includes running tasks in
-  /// [Schedule.onException] and [Schedule.onComplete].
+  /// [Schedule.onComplete].
   static const RUNNING = const ScheduleState._("RUNNING");
 
   /// The schedule has finished running all its tasks, either successfully or
