@@ -3,6 +3,10 @@
 * Remove the `Schedule.onException` queue. This was largely redundant with
   `Schedule.onComplete` and complicated the implementation.
 
+* Remove `Schedule.pendingCallbacks` and `ScheduleError.pendingCallbacks`.
+  Printing out the pending callbacks was rarely useful once stack chains
+  existed, so they were just producing visual clutter.
+
 ## 0.11.8+1
 
 * Bump the version constraint for `unittest`.

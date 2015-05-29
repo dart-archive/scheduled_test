@@ -29,10 +29,6 @@ class ScheduleError {
   /// `null` if there was no such queue.
   final TaskQueue queue;
 
-  /// The descriptions of out-of-band callbacks that were pending when this
-  /// error occurred.
-  final Iterable<PendingCallback> pendingCallbacks;
-
   /// The state of the schedule at the time the error was detected.
   final ScheduleState _stateWhenDetected;
 
@@ -59,8 +55,6 @@ class ScheduleError {
       : schedule = schedule,
         task = schedule.currentTask,
         queue = schedule.currentQueue,
-        pendingCallbacks = schedule.currentQueue == null ? <PendingCallback>[]
-            : schedule.currentQueue.pendingCallbacks.toList(),
         _stateWhenDetected = schedule.state;
 
   bool operator ==(other) => other is ScheduleError && task == other.task &&
@@ -96,14 +90,6 @@ class ScheduleError {
           'queue "$queue".');
     } else { // _stateWhenDetected == ScheduleState.SET_UP
       result.write('Error detected before the schedule started running.');
-    }
-
-    if (!pendingCallbacks.isEmpty) {
-      result.write("\n\n");
-      result.writeln("Pending out-of-band callbacks:");
-      for (var callback in pendingCallbacks) {
-        result.writeln(prefixLines(callback.toString(), firstPrefix: "* "));
-      }
     }
 
     return result.toString().trim();

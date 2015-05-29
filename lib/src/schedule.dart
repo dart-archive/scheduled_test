@@ -336,16 +336,14 @@ class TaskQueue {
   /// Whether to stop running after the current task.
   bool _aborted = false;
 
-  /// The descriptions of all callbacks that are blocking the completion of
-  /// [this].
-  List<PendingCallback> get pendingCallbacks =>
-      new UnmodifiableListView<PendingCallback>(_pendingCallbacks);
-  final _pendingCallbacks = new Queue<PendingCallback>();
+  /// The number of out-of-band callbacks registered on [this] that have yet to
+  /// fire.
+  int _pendingCallbackCount = 0;
 
-  /// A completer that will be completed once [_pendingCallbacks] becomes empty
-  /// after the queue finishes running its tasks.
+  /// A completer that will be completed once [_pendingCallbackCount] becomes
+  /// `0` after the queue finishes running its tasks.
   Future get _noPendingCallbacks => _noPendingCallbacksCompleter.future;
-  final Completer _noPendingCallbacksCompleter = new Completer();
+  final _noPendingCallbacksCompleter = new Completer();
 
   /// A [Future] that completes when the tasks in [this] are all complete. If an
   /// error occurs while running this queue, the returned [Future] will complete
@@ -431,7 +429,7 @@ class TaskQueue {
       _onTasksCompleteCompleter.completeError(e, stackTrace);
       throw e;
     }).whenComplete(() {
-      if (pendingCallbacks.isEmpty) return null;
+      if (_pendingCallbackCount == 0) return null;
       return _noPendingCallbacks.catchError((e, stackTrace) {
         // Signal the error rather than passing it through directly so that if a
         // timeout happens after an in-task error, both are reported.
@@ -462,22 +460,10 @@ class TaskQueue {
     assert(_schedule.state == ScheduleState.SET_UP || isRunning);
 
     // It's possible that the queue timed out before [fn] finished.
-    bool _timedOut() =>
-      _schedule.currentQueue != this || pendingCallbacks.isEmpty;
+    timedOut() => _schedule.currentQueue != this || _pendingCallbackCount == 0;
 
     _totalCallbacks++;
-    var chain = new Chain.current();
-    var pendingCallback = new PendingCallback._(() {
-      var fullDescription = description;
-      if (fullDescription == null) {
-        fullDescription = "Out-of-band operation #${_totalCallbacks}";
-      }
-
-      var stackString = prefixLines(terseTraceString(chain));
-      fullDescription += "\n\nStack chain:\n$stackString";
-      return fullDescription;
-    });
-    _pendingCallbacks.add(pendingCallback);
+    _pendingCallbackCount++;
 
     return (arg) {
       try {
@@ -485,16 +471,16 @@ class TaskQueue {
       } catch (e, stackTrace) {
         var error = new ScheduleError.from(
             _schedule, e, stackTrace: stackTrace);
-        if (_timedOut()) {
+        if (timedOut()) {
           _schedule._signalPostTimeoutError(error);
         } else {
           _schedule.signalError(error);
         }
       } finally {
-        if (_timedOut()) return null;
+        if (timedOut()) return null;
 
-        _pendingCallbacks.remove(pendingCallback);
-        if (_pendingCallbacks.isEmpty && !isRunningTasks) {
+        if (_pendingCallbackCount != 0) _pendingCallbackCount--;
+        if (_pendingCallbackCount == 0 && !isRunningTasks) {
           _noPendingCallbacksCompleter.complete();
         }
       }
@@ -513,7 +499,7 @@ class TaskQueue {
   /// Notifies the queue that it has timed out and it needs to terminate
   /// immediately with a timeout error.
   void _signalTimeout(ScheduleError error) {
-    _pendingCallbacks.clear();
+    _pendingCallbackCount = 0;
     if (!isRunningTasks) {
       _noPendingCallbacksCompleter.completeError(error);
     } else if (_taskFuture != null) {
@@ -567,23 +553,4 @@ class TaskQueue {
       return taskString;
     }).join("\n");
   }
-}
-
-/// A thunk for lazily resolving the description of a [PendingCallback].
-typedef String _DescriptionThunk();
-
-/// An identifier for an out-of-band callback running during a schedule.
-class PendingCallback {
-  final _DescriptionThunk _thunk;
-  String _description;
-
-  /// The string description of the callback.
-  String get description {
-    if (_description == null) _description = _thunk();
-    return _description;
-  }
-
-  String toString() => description;
-
-  PendingCallback._(this._thunk);
 }
