@@ -15,7 +15,6 @@ lib/*: Skip
 # difference between transformed an untransformed code.
 test/*: Skip
 
-build/test/scheduled_server_test: Pass, Fail # 13524
 build/test/scheduled_process_test: Pass, Slow # Issue 9231
 build/test/scheduled_stream/stream_matcher_test: Pass, Slow
 

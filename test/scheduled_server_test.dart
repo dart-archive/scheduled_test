@@ -21,8 +21,9 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestPasses("a server with no handlers does nothing",
-      () => new ScheduledServer());
+  expectTestPasses("a server with no handlers does nothing", () {
+    new ScheduledServer();
+  });
 
   expectServerError("a server with no handlers that receives a request throws "
       "an error", () {
@@ -178,7 +179,8 @@ void expectServerError(String description, testBody(),
     expect(errors[0].error.toString(), equals(errorMessage));
 
     for (var i = 1; i < errors.length; i++) {
-      expect(errors[i].error, new isInstanceOf<HttpException>());
+      if (errors[i].error == errors[0].error) continue;
+      expect(errors[i].error, new isInstanceOf<http.ClientException>());
     }
   });
 }
