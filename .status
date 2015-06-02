@@ -22,24 +22,6 @@ build/test/scheduled_stream/stream_matcher_test: Pass, Slow
 [ $runtime == vm && $mode == debug]
 build/test/scheduled_server_test: Pass, Fail, Slow # 13524
 
-[ $runtime == jsshell ]
-build/test/scheduled_future_matchers_test: RuntimeError #Issue 21005
-build/test/scheduled_stream/stream_matcher_test: RuntimeError #Issue 21005
-build/test/scheduled_test/abort_test: RuntimeError #Issue 21005
-build/test/scheduled_test/current_schedule_current_task_test: RuntimeError #Issue 21005
-build/test/scheduled_test/current_schedule_errors_test: RuntimeError #Issue 21005
-build/test/scheduled_test/current_schedule_state_test: RuntimeError #Issue 21005
-build/test/scheduled_test/nested_task_test: RuntimeError #Issue 21005
-build/test/scheduled_test/on_complete_test: RuntimeError #Issue 21005
-build/test/scheduled_test/on_exception_test: RuntimeError #Issue 21005
-build/test/scheduled_test/set_up_test: RuntimeError #Issue 21005
-build/test/scheduled_test/simple_test: RuntimeError #Issue 21005
-build/test/scheduled_test/task_return_value_test: RuntimeError #Issue 21005
-build/test/scheduled_test/tear_down_test: RuntimeError #Issue 21005
-build/test/scheduled_test/unhandled_error_test: RuntimeError #Issue 21005
-build/test/scheduled_test/wrap_future_test: RuntimeError #Issue 21005
-build/test/unittest_compatibility_test: RuntimeError #Issue 21005
-
 [ $runtime == ie10 || $runtime == ie11 ]
 build/test/scheduled_test/current_schedule_errors_test: Skip # Issue 21007
 build/test/scheduled_test/nested_task_test: Timeout # Skip 21007
