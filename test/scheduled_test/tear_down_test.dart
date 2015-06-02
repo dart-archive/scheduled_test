@@ -12,8 +12,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass('tearDown is run synchronously after each test', () {
     var tearDownRun = false;
     tearDown(() {

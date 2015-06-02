@@ -17,8 +17,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("directory().create() creates a directory and its contents",
       () {
     test('test', () {

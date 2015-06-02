@@ -36,8 +36,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestPasses("expect() with matching values passes", () {
     var stream = createStream();
     stream.expect(1);

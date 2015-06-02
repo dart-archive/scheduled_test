@@ -13,8 +13,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("nested schedule() runs its function immediately (but "
       "asynchronously)", () {
     test('test', () {

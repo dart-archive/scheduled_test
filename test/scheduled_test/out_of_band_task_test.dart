@@ -13,8 +13,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("out-of-band schedule() runs its function immediately (but "
       "asynchronously)", () {
     mock_clock.mock().run();

@@ -11,7 +11,6 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'mock_clock.dart' as mock_clock;
 import 'schedule_error.dart';
-import 'substitute_future.dart';
 import 'task.dart';
 import 'utils.dart';
 
@@ -69,35 +68,11 @@ class Schedule {
     _state == ScheduleState.DONE ? null : _currentQueue;
   TaskQueue _currentQueue;
 
-  /// The time to wait before terminating a task queue for inactivity. Defaults
-  /// to 5 seconds. This can be set to `null` to disable timeouts entirely. Note
-  /// that the timeout is the maximum time a task is allowed between
-  /// interactions with the schedule, *not* the maximum time an entire test is
-  /// allowed. See also [heartbeat].
-  ///
-  /// If [tasks] times out, an error will be raised that can be handled as usual
-  /// in the [onComplete] queue. If [onComplete] times out, that cannot be
-  /// handled.
-  ///
-  /// If a task times out and then later completes with an error, that error
-  /// cannot be handled. The user will still be notified of it.
-  Duration get timeout => _timeout;
-  Duration _timeout = new Duration(seconds: 5);
-  set timeout(Duration duration) {
-    _timeout = duration;
-    heartbeat();
-  }
-
-  /// The timer for keeping track of task timeouts. This may be null.
-  Timer _timeoutTimer;
-
   /// Creates a new schedule with empty task queues.
   Schedule() {
     _tasks = new TaskQueue._("tasks", this);
     _onComplete = new TaskQueue._("onComplete", this);
     _currentQueue = _tasks;
-
-    heartbeat();
   }
 
   /// Sets up this schedule by running [setUp], then runs all the task queues in
@@ -127,7 +102,6 @@ class Schedule {
         throw error;
       });
     }).whenComplete(() {
-      if (_timeoutTimer != null) _timeoutTimer.cancel();
       _state = ScheduleState.DONE;
     });
   }
@@ -152,7 +126,8 @@ class Schedule {
   ///
   /// The metadata in [ScheduleError]s will be preserved.
   void signalError(error, [stackTrace]) {
-    heartbeat();
+    // TODO(nweiz): Once this becomes integrated with the test package, add a
+    // heartbeat here.
 
     var scheduleError = new ScheduleError.from(this, error,
         stackTrace: stackTrace);
@@ -176,21 +151,6 @@ class Schedule {
   /// additional information that may not fit cleanly into an existing error.
   void addDebugInfo(String info) => _debugInfo.add(info);
 
-  /// Notifies the schedule of an error that occurred in a task or out-of-band
-  /// callback after the appropriate queue has timed out. If this schedule is
-  /// still running, the error will be added to the errors list to be shown
-  /// along with the timeout error; otherwise, a top-level error will be thrown.
-  void _signalPostTimeoutError(error, [stackTrace]) {
-    var scheduleError = new ScheduleError.from(this, error,
-        stackTrace: stackTrace);
-    _addError(scheduleError);
-    if (_state == ScheduleState.DONE) {
-      throw new StateError(
-        "An out-of-band error was caught after the test timed out.\n"
-        "${errorString()}");
-    }
-  }
-
   /// Returns a function wrapping [fn] that pipes any errors into the schedule
   /// chain. This will also block the current task queue from completing until
   /// the returned function has been called. It's used to ensure that
@@ -206,7 +166,6 @@ class Schedule {
       throw new StateError("wrapAsync called after the schedule has finished "
           "running.");
     }
-    heartbeat();
 
     return currentQueue._wrapAsync(fn, description);
   }
@@ -260,22 +219,6 @@ class Schedule {
     return message;
   }
 
-  /// Notifies the schedule that progress is being made on an asynchronous task.
-  /// This resets the timeout timer, and can be used in long-running tasks to
-  /// keep them from timing out.
-  void heartbeat() {
-    if (_timeoutTimer != null) _timeoutTimer.cancel();
-    if (_timeout == null) {
-      _timeoutTimer = null;
-    } else {
-      _timeoutTimer = mock_clock.newTimer(_timeout, () {
-        _timeoutTimer = null;
-        currentQueue._signalTimeout(new ScheduleError.from(this, "The schedule "
-            "timed out after $_timeout of inactivity."));
-      });
-    }
-  }
-
   /// Register an error in the schedule's error list. This ensures that there
   /// are no duplicate errors, and that all errors are wrapped in
   /// [ScheduleError].
@@ -324,10 +267,6 @@ class TaskQueue {
   /// indicates that the queue should stop as soon as possible and re-throw this
   /// error.
   ScheduleError _error;
-
-  /// The [SubstituteFuture] for the currently-running task in the queue, or
-  /// null if no task is currently running.
-  SubstituteFuture _taskFuture;
 
   /// The toal number of out-of-band callbacks that have been registered on
   /// [this].
@@ -406,17 +345,16 @@ class TaskQueue {
   /// Runs all the tasks in this queue in order.
   Future _run() {
     _schedule._currentQueue = this;
-    _schedule.heartbeat();
+    // TODO(nweiz): Once this becomes integrated with the test package, add a
+    // heartbeat here.
     return Future.forEach(_contents, (task) {
       _schedule._currentTask = task;
       if (_error != null) throw _error;
       if (_aborted) return null;
 
-      _taskFuture = new SubstituteFuture(task.fn());
-      return _taskFuture.whenComplete(() {
-        _taskFuture = null;
-        _schedule.heartbeat();
-      }).catchError((e, trace) {
+      // TODO(nweiz): Once this becomes integrated with the test package, add a
+      // heartbeat here after [task.fn] completes.
+      return task.fn().catchError((e, trace) {
         var error = new ScheduleError.from(_schedule, e, stackTrace: trace);
         _signalError(error);
         throw _error;
@@ -437,7 +375,9 @@ class TaskQueue {
                                             stackTrace: stackTrace));
       });
     }).whenComplete(() {
-      _schedule.heartbeat();
+      // TODO(nweiz): Once this becomes integrated with the test package, add a
+      // heartbeat here.
+
       // If the tasks were otherwise successful, make sure we throw any
       // out-of-band errors. If a task failed, make sure we throw the most
       // recent error.
@@ -459,9 +399,6 @@ class TaskQueue {
   Function _wrapAsync(fn(arg), String description) {
     assert(_schedule.state == ScheduleState.SET_UP || isRunning);
 
-    // It's possible that the queue timed out before [fn] finished.
-    timedOut() => _schedule.currentQueue != this || _pendingCallbackCount == 0;
-
     _totalCallbacks++;
     _pendingCallbackCount++;
 
@@ -471,14 +408,8 @@ class TaskQueue {
       } catch (e, stackTrace) {
         var error = new ScheduleError.from(
             _schedule, e, stackTrace: stackTrace);
-        if (timedOut()) {
-          _schedule._signalPostTimeoutError(error);
-        } else {
-          _schedule.signalError(error);
-        }
+        _schedule.signalError(error);
       } finally {
-        if (timedOut()) return null;
-
         if (_pendingCallbackCount != 0) _pendingCallbackCount--;
         if (_pendingCallbackCount == 0 && !isRunningTasks) {
           _noPendingCallbacksCompleter.complete();
@@ -494,27 +425,6 @@ class TaskQueue {
     // earlier ones are recorded in the schedule.
     if (_error != null) _schedule._addError(_error);
     _error = error;
-  }
-
-  /// Notifies the queue that it has timed out and it needs to terminate
-  /// immediately with a timeout error.
-  void _signalTimeout(ScheduleError error) {
-    _pendingCallbackCount = 0;
-    if (!isRunningTasks) {
-      _noPendingCallbacksCompleter.completeError(error);
-    } else if (_taskFuture != null) {
-      // Catch errors coming off the old task future, in case it completes after
-      // timing out.
-      _taskFuture.substitute(new Future.error(error))
-          .catchError((e, stackTrace) {
-        _schedule._signalPostTimeoutError(e, stackTrace);
-      });
-    } else {
-      // This branch probably won't be reached, but it's conceivable that the
-      // event loop might get pumped when _taskFuture is null but we haven't yet
-      // finished running all the tasks.
-      _signalError(error);
-    }
   }
 
   String toString() => name;

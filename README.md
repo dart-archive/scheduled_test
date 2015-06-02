@@ -162,18 +162,5 @@ void main() {
 }
 ```
 
-## Timeouts
-
-`scheduled_test` has a built-in timeout of 5 seconds (configurable via
-[Schedule.timeout]). This timeout is aware of the structure of the schedule;
-this means that it will reset for each task in a queue, when moving between
-queues, or almost any other sort of interaction with [currentSchedule]. As
-long as the [Schedule] knows your test is making some sort of progress, it
-won't time out.
-
-If a single task might take a long time, you can also manually tell the
-[Schedule] that it's making progress by calling [Schedule.heartbeat], which
-will reset the timeout whenever it's called.
-
 [pub]: http://pub.dartlang.org
 [pkg]: http://pub.dartlang.org/packages/scheduled_test

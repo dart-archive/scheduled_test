@@ -13,8 +13,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("an error thrown in a scheduled task should be piped to that "
       "task's return value", () {
     var error;

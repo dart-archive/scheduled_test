@@ -21,8 +21,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestPasses("a server with no handlers does nothing",
       () => new ScheduledServer());
 
@@ -111,30 +109,6 @@ void _test(message) {
     server.handle('GET', '/hello',
         (request) => new shelf.Response.ok('Hello, test!'));
   }, "'scheduled server 0' expected GET /hello, but got HEAD /hello.");
-
-  expectTestsPass("a handler times out waiting to be hit", () {
-    var clock = mock_clock.mock()..run();
-    var errors;
-    test('test 1', () {
-      currentSchedule.timeout = new Duration(milliseconds: 2);
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      var server = new ScheduledServer();
-
-      server.handle('GET', '/hello',
-          (request) => new shelf.Response.ok('Hello, test!'));
-    });
-
-    test('test 2', () {
-      expect(clock.time, equals(2));
-
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(), equals(
-          "The schedule timed out after 0:00:00.002000 of inactivity."));
-    });
-  }, passing: ['test 2']);
 
   expectTestPasses("multiple handlers in series respond to requests in series",
       () {

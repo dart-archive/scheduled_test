@@ -12,8 +12,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass('currentSchedule.state starts out as SET_UP', () {
     test('test', () {
       expect(currentSchedule.state, equals(ScheduleState.SET_UP));

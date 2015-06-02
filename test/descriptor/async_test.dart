@@ -13,8 +13,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("async().create() forwards to file().create", () {
     test('test', () {
       scheduleSandbox();

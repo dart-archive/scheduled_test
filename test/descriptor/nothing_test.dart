@@ -16,8 +16,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("nothing().create() does nothing", () {
     test('test', () {
       scheduleSandbox();

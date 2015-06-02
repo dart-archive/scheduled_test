@@ -13,8 +13,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsFail('an out-of-band error reported via signalError is '
       'handled', () {
     mock_clock.mock().run();

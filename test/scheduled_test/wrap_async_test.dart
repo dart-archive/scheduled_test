@@ -13,8 +13,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsFail('an out-of-band failure in wrapAsync is handled', () {
     mock_clock.mock().run();
     test('test', () {

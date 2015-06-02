@@ -14,8 +14,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestFails("a top-leveled error should be converted to a schedule error",
       () {
     schedule(() {

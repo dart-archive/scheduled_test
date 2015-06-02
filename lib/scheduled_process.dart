@@ -194,9 +194,8 @@ class ScheduledProcess {
     return streamWithCanceller(futureStream(streamFuture)
         .handleError(currentSchedule.signalError)
         .map((chunk) {
-      // Whenever the process produces any sort of output, reset the schedule's
-      // timer.
-      currentSchedule.heartbeat();
+      // TODO(nweiz): Once this becomes integrated with the test package, add a
+      // heartbeat here.
       return chunk;
     })
         .transform(_encoding.decoder)

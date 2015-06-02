@@ -14,8 +14,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass('a scheduled test with a correct synchronous expectation '
       'should pass', () {
     test('test', () {

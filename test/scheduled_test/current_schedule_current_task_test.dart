@@ -12,8 +12,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass('currentSchedule.currentTask returns the current task while '
       'executing a task', () {
     test('test', () {

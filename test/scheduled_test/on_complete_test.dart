@@ -12,8 +12,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass('the onComplete queue is run if a test is successful', () {
     var onCompleteRun = false;
     test('test 1', () {

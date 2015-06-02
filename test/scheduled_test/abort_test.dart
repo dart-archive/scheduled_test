@@ -12,8 +12,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("aborting the schedule before it's started running should "
       "cause no tasks to be run", () {
     test('test', () {

@@ -7,6 +7,9 @@
   Printing out the pending callbacks was rarely useful once stack chains
   existed, so they were just producing visual clutter.
 
+* Remove `Schedule.timeout` and `Schedule.heartbeat`. Timeouts will be handled
+  by the `test` package instead.
+
 ## 0.11.8+1
 
 * Bump the version constraint for `unittest`.

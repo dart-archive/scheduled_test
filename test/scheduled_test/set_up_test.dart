@@ -12,8 +12,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass('setUp is run before each test', () {
     var setUpRun = false;
     setUp(() {

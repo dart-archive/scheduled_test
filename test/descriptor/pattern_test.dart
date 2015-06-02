@@ -15,8 +15,6 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  setUpTimeout();
-
   expectTestsPass("pattern().validate() succeeds if there's a file matching "
       "the pattern and the child entry", () {
     test('test', () {
