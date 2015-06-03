@@ -13,108 +13,80 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass("async().create() forwards to file().create", () {
-    test('test', () {
-      scheduleSandbox();
+  expectTestPasses("async().create() forwards to file().create", () {
+    scheduleSandbox();
 
-      d.async(pumpEventQueue().then((_) {
-        return d.file('name.txt', 'contents');
-      })).create();
+    d.async(pumpEventQueue().then((_) {
+      return d.file('name.txt', 'contents');
+    })).create();
 
-      d.file('name.txt', 'contents').validate();
-    });
+    d.file('name.txt', 'contents').validate();
   });
 
-  expectTestsPass("async().create() forwards to directory().create", () {
-    test('test', () {
-      scheduleSandbox();
+  expectTestPasses("async().create() forwards to directory().create", () {
+    scheduleSandbox();
 
-      d.async(pumpEventQueue().then((_) {
-        return d.dir('dir', [
-          d.file('file1.txt', 'contents1'),
-          d.file('file2.txt', 'contents2')
-        ]);
-      })).create();
-
-      d.dir('dir', [
+    d.async(pumpEventQueue().then((_) {
+      return d.dir('dir', [
         d.file('file1.txt', 'contents1'),
         d.file('file2.txt', 'contents2')
-      ]).validate();
-    });
+      ]);
+    })).create();
+
+    d.dir('dir', [
+      d.file('file1.txt', 'contents1'),
+      d.file('file2.txt', 'contents2')
+    ]).validate();
   });
 
-  expectTestsPass("async().validate() forwards to file().validate", () {
-    test('test', () {
-      scheduleSandbox();
+  expectTestPasses("async().validate() forwards to file().validate", () {
+    scheduleSandbox();
 
-      d.file('name.txt', 'contents').create();
+    d.file('name.txt', 'contents').create();
 
-      d.async(pumpEventQueue().then((_) {
-        return d.file('name.txt', 'contents');
-      })).validate();
-    });
+    d.async(pumpEventQueue().then((_) {
+      return d.file('name.txt', 'contents');
+    })).validate();
   });
 
-  expectTestsPass("async().validate() fails if file().validate fails", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+  expectTestFailure("async().validate() fails if file().validate fails", () {
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    d.async(pumpEventQueue().then((_) {
+      return d.file('name.txt', 'contents');
+    })).validate();
+  }, (error) {
+    expect(error.toString(),
+           matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
+  });
 
-      d.async(pumpEventQueue().then((_) {
-        return d.file('name.txt', 'contents');
-      })).validate();
-    });
+  expectTestPasses("async().validate() forwards to directory().validate", () {
+    scheduleSandbox();
 
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-             matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
-    });
-  }, passing: ['test 2']);
+    d.dir('dir', [
+      d.file('file1.txt', 'contents1'),
+      d.file('file2.txt', 'contents2')
+    ]).create();
 
-  expectTestsPass("async().validate() forwards to directory().validate", () {
-    test('test', () {
-      scheduleSandbox();
-
-      d.dir('dir', [
+    d.async(pumpEventQueue().then((_) {
+      return d.dir('dir', [
         d.file('file1.txt', 'contents1'),
         d.file('file2.txt', 'contents2')
-      ]).create();
-
-      d.async(pumpEventQueue().then((_) {
-        return d.dir('dir', [
-          d.file('file1.txt', 'contents1'),
-          d.file('file2.txt', 'contents2')
-        ]);
-      })).validate();
-    });
+      ]);
+    })).validate();
   });
 
-  expectTestsPass("async().create() fails if directory().create fails", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+  expectTestFailure("async().create() fails if directory().create fails", () {
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.async(pumpEventQueue().then((_) {
-        return d.dir('dir', [
-          d.file('file1.txt', 'contents1'),
-          d.file('file2.txt', 'contents2')
-        ]);
-      })).validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^Directory not found: '[^']+[\\/]dir'\.$"));
-    });
-  }, passing: ['test 2']);
+    d.async(pumpEventQueue().then((_) {
+      return d.dir('dir', [
+        d.file('file1.txt', 'contents1'),
+        d.file('file2.txt', 'contents2')
+      ]);
+    })).validate();
+  }, (error) {
+    expect(error.toString(),
+        matches(r"^Directory not found: '[^']+[\\/]dir'\.$"));
+  });
 }

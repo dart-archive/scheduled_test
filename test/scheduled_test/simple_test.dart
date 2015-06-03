@@ -14,71 +14,54 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass('a scheduled test with a correct synchronous expectation '
+  expectTestPasses('a scheduled test with a correct synchronous expectation '
       'should pass', () {
-    test('test', () {
-      expect('foo', equals('foo'));
-    });
+    expect('foo', equals('foo'));
   });
 
-  expectTestsFail('a scheduled test with an incorrect synchronous expectation '
-      'should fail', () {
-    test('test', () {
-      expect('foo', equals('bar'));
-    });
-  });
+  expectTestFailure('a scheduled test with an incorrect synchronous '
+      'expectation should fail', () {
+    expect('foo', equals('bar'));
+  }, (error) => expect(error, isTestFailure));
 
-  expectTestsPass('a scheduled test with a correct asynchronous expectation '
+  expectTestPasses('a scheduled test with a correct asynchronous expectation '
       'should pass', () {
-    test('test', () {
-      expect(new Future.value('foo'), completion(equals('foo')));
-    });
+    expect(new Future.value('foo'), completion(equals('foo')));
   });
 
-  expectTestsFail('a scheduled test with an incorrect asynchronous expectation '
-      'should fail', () {
-    test('test', () {
-      expect(new Future.value('foo'), completion(equals('bar')));
-    });
+  expectTestFailure('a scheduled test with an incorrect asynchronous '
+      'expectation should fail', () {
+    expect(new Future.value('foo'), completion(equals('bar')));
+  }, (error) => expect(error, isTestFailure));
+
+  expectTestPasses('a passing scheduled synchronous expect should register',
+      () {
+    schedule(() => expect('foo', equals('foo')));
   });
 
-  expectTestsPass('a passing scheduled synchronous expect should register', () {
-    test('test', () {
-      schedule(() => expect('foo', equals('foo')));
-    });
-  });
+  expectTestFailure('a failing scheduled synchronous expect should register',
+      () => schedule(() => expect('foo', equals('bar'))),
+      (error) => expect(error, isTestFailure));
 
-  expectTestsFail('a failing scheduled synchronous expect should register', () {
-    test('test', () {
-      schedule(() => expect('foo', equals('bar')));
-    });
-  });
-
-  expectTestsPass('a passing scheduled asynchronous expect should '
+  expectTestPasses('a passing scheduled asynchronous expect should '
       'register', () {
-    test('test', () {
-      schedule(() =>
-          expect(new Future.value('foo'), completion(equals('foo'))));
-    });
+    schedule(() =>
+        expect(new Future.value('foo'), completion(equals('foo'))));
   });
 
-  expectTestsFail('a failing scheduled synchronous expect should '
+  expectTestFailure('a failing scheduled synchronous expect should '
       'register', () {
-    test('test', () {
-      schedule(() =>
-          expect(new Future.value('foo'), completion(equals('bar'))));
-    });
-  });
+    schedule(() =>
+        expect(new Future.value('foo'), completion(equals('bar'))));
+  }, (error) => expect(error, isTestFailure));
 
-  expectTestsPass('scheduled blocks should be run in order after the '
+  expectTestPasses('scheduled blocks should be run in order after the '
       'synchronous setup', () {
-    test('test', () {
-      var list = [1];
-      schedule(() => list.add(2));
-      list.add(3);
-      schedule(() => expect(list, equals([1, 3, 4, 2])));
-      list.add(4);
-    });
+    var list = [1];
+    schedule(() => list.add(2));
+    list.add(3);
+    schedule(() => expect(list, equals([1, 3, 4, 2])));
+    list.add(4);
   });
 
   expectTestsPass('scheduled blocks should forward their return values as '
@@ -94,31 +77,25 @@ void _test(message) {
     });
   });
 
-  expectTestsPass('scheduled blocks should wait for their Future return values '
-      'to complete before proceeding', () {
-    test('test', () {
-      var value = 'unset';
-      schedule(() => pumpEventQueue().then((_) {
-        value = 'set';
-      }));
-      schedule(() => expect(value, equals('set')));
-    });
+  expectTestPasses('scheduled blocks should wait for their Future return '
+      'values to complete before proceeding', () {
+    var value = 'unset';
+    schedule(() => pumpEventQueue().then((_) {
+      value = 'set';
+    }));
+    schedule(() => expect(value, equals('set')));
   });
 
-  expectTestsFail('a test failure in a chained future in a scheduled block '
+  expectTestFailure('a test failure in a chained future in a scheduled block '
       'should be registered', () {
-    test('test', () {
-      schedule(() => new Future.value('foo')
-          .then((v) => expect(v, equals('bar'))));
-    });
-  });
+    schedule(() => new Future.value('foo')
+        .then((v) => expect(v, equals('bar'))));
+  }, (error) => expect(error, isTestFailure));
 
-  expectTestsFail('an error in a chained future in a scheduled block should be '
-      'registered', () {
-    test('test', () {
-      schedule(() => new Future.value().then((_) {
-        throw 'error';
-      }));
-    });
-  });
+  expectTestFailure('an error in a chained future in a scheduled block should '
+      'be registered', () {
+    schedule(() => new Future.value().then((_) {
+      throw 'error';
+    }));
+  }, (error) => expect(error, equals('error')));
 }

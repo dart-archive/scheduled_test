@@ -45,21 +45,20 @@ void _test(message) {
     stream.expect(5);
   });
 
-  expectTestFails("expect() with a non-matching value fails", () {
+  expectTestFailure("expect() with a non-matching value fails", () {
     var stream = createStream();
     stream.expect(1);
     stream.expect(2);
     stream.expect(100);
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: <100>\n"
         " Emitted: * 1\n"
         "          * 2\n"
         "          * 3"));
   });
 
-  expectTestFails("expect() with too few values fails", () {
+  expectTestFailure("expect() with too few values fails", () {
     var stream = createStream();
     stream.expect(1);
     stream.expect(2);
@@ -67,9 +66,8 @@ void _test(message) {
     stream.expect(4);
     stream.expect(5);
     stream.expect(6);
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: <6>\n"
         " Emitted: * 1\n"
         "          * 2\n"
@@ -88,14 +86,13 @@ void _test(message) {
     stream.expect(greaterThan(4));
   });
 
-  expectTestFails("expect() with a non-matching matcher fails", () {
+  expectTestFailure("expect() with a non-matching matcher fails", () {
     var stream = createStream();
     stream.expect(greaterThan(0));
     stream.expect(greaterThan(1));
     stream.expect(greaterThan(100));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: a value greater than <100>\n"
         " Emitted: * 1\n"
         "          * 2\n"
@@ -107,11 +104,10 @@ void _test(message) {
     createStream().expect(nextValues(3, unorderedEquals([3, 2, 1])));
   });
 
-  expectTestFails("nextValues() without enough values fails", () {
+  expectTestFailure("nextValues() without enough values fails", () {
     createStream().expect(nextValues(6, unorderedEquals([3, 2, 1])));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: 6 values that equals [3, 2, 1] unordered\n"
         " Emitted: * 1\n"
         "          * 2\n"
@@ -121,11 +117,10 @@ void _test(message) {
         "   Which: unexpected end of stream"));
   });
 
-  expectTestFails("nextValues() with non-matching values fails", () {
+  expectTestFailure("nextValues() with non-matching values fails", () {
     createStream().expect(nextValues(3, unorderedEquals([2, 3, 4])));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: 3 values that equals [2, 3, 4] unordered\n"
         " Emitted: * 1\n"
         "          * 2\n"
@@ -154,14 +149,13 @@ void _test(message) {
     stream.expect(1);
   });
 
-  expectTestFails("inOrder() fails if a sub-matcher fails", () {
+  expectTestFailure("inOrder() fails if a sub-matcher fails", () {
     createStream().expect(inOrder([
       nextValues(3, unorderedEquals([2, 3, 4])),
       consumeThrough(5)
     ]));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: * 3 values that equals [2, 3, 4] unordered\n"
         "        | * values followed by <5>\n"
         " Emitted: * 1\n"
@@ -171,11 +165,10 @@ void _test(message) {
         "        | has no match for <4> at index 2"));
   });
 
-  expectTestFails("inOrder() with one value has a simpler description", () {
+  expectTestFailure("inOrder() with one value has a simpler description", () {
     createStream().expect(inOrder([100]));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: <100>\n"
         " Emitted: * 1"));
   });
@@ -193,12 +186,11 @@ void _test(message) {
     stream.expect(3);
   });
 
-  expectTestFails("consumeThrough() will fail if the stream ends before the "
+  expectTestFailure("consumeThrough() will fail if the stream ends before the "
       "value is reached", () {
     createStream().expect(consumeThrough(inOrder([5, 6])));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: values followed by:\n"
         "        |   * <5>\n"
         "        |   * <6>\n"
@@ -251,13 +243,12 @@ void _test(message) {
     stream.expect(4);
   });
 
-  expectTestFails("either() will fail if neither branch matches", () {
+  expectTestFailure("either() will fail if neither branch matches", () {
     createStream().expect(either(
         inOrder([3, 2, 1]),
         nextValues(4, unorderedEquals([5, 4, 3, 2]))));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: either\n"
         "        |   * <3>\n"
         "        |   * <2>\n"
@@ -292,12 +283,11 @@ void _test(message) {
     stream.expect(never(inOrder([2, 1])));
   });
 
-  expectTestFails("never() fails if the matcher matches", () {
+  expectTestFailure("never() fails if the matcher matches", () {
     var stream = createStream();
     stream.expect(never(inOrder([2, 3])));
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: never\n"
         "        |   * <2>\n"
         "        |   * <3>\n"
@@ -315,13 +305,12 @@ void _test(message) {
     stream.expect(isDone);
   });
 
-  expectTestFails("isDone fails before the end of the stream", () {
+  expectTestFailure("isDone fails before the end of the stream", () {
     var stream = createStream();
     stream.expect(consumeThrough(4));
     stream.expect(isDone);
-  }, (errors) {
-    expect(errors, hasLength(1));
-    expect(errors.first.error.message, equals(
+  }, (error) {
+    expect(error.message, equals(
         "Expected: is done\n"
         " Emitted: * 1\n"
         "          * 2\n"

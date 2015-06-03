@@ -62,14 +62,12 @@ void _test(message) {
     test('test2', () => expect(outOfBand2Run, isTrue));
   });
 
-  expectTestsFail('an out-of-band callback in the onComplete queue blocks the '
-      'test', () {
-    test('test', () {
-      currentSchedule.onComplete.schedule(() {
-        pumpEventQueue().then(wrapAsync((_) => expect('foo', equals('bar'))));
-      });
+  expectTestFailure('an out-of-band callback in the onComplete queue blocks '
+      'the test', () {
+    currentSchedule.onComplete.schedule(() {
+      pumpEventQueue().then(wrapAsync((_) => throw 'error'));
     });
-  });
+  }, (error) => expect(error, equals('error')));
 
   expectTestsPass('an out-of-band callback blocks onComplete even with an '
       'unrelated error', () {
@@ -151,11 +149,9 @@ void _test(message) {
     });
   });
 
-  expectTestsFail('failures in onComplete cause test failures', () {
-    test('test', () {
-      currentSchedule.onComplete.schedule(() {
-        expect('foo', equals('bar'));
-      });
+  expectTestFailure('failures in onComplete cause test failures', () {
+    currentSchedule.onComplete.schedule(() {
+      expect('foo', equals('bar'));
     });
-  });
+  }, (error) => expect(error, isTestFailure));
 }

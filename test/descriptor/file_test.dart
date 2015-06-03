@@ -16,251 +16,181 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass('file().create() creates a file', () {
-    test('test', () {
-      scheduleSandbox();
+  expectTestPasses('file().create() creates a file', () {
+    scheduleSandbox();
 
-      d.file('name.txt', 'contents').create();
+    d.file('name.txt', 'contents').create();
 
-      schedule(() {
-        expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
-            completion(equals('contents')));
-      });
-    });
-  });
-
-  expectTestsPass('file().create() overwrites an existing file', () {
-    test('test', () {
-      scheduleSandbox();
-
-      d.file('name.txt', 'contents1').create();
-
-      d.file('name.txt', 'contents2').create();
-
-      schedule(() {
-        expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
-            completion(equals('contents2')));
-      });
-    });
-  });
-
-  expectTestsPass('file().validate() completes successfully if the filesystem '
-      'matches the descriptor', () {
-    test('test', () {
-      scheduleSandbox();
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('contents');
-      });
-
-      d.file('name.txt', 'contents').validate();
-    });
-  });
-
-  expectTestsPass("file().validate() fails if there's a file with the wrong "
-      "contents", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('wrongtents');
-      });
-
-      d.file('name.txt', 'contents').validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(), equals(
-          "File 'name.txt' should contain:\n"
-          "| contents\n"
-          "but actually contained:\n"
-          "X wrongtents"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("file().validate() fails if there's no file", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
-
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.file('name.txt', 'contents').validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("file().read() returns the contents of the file as a stream",
-      () {
-    test('test', () {
-      expect(byteStreamToString(d.file('name.txt', 'contents').read()),
+    schedule(() {
+      expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
           completion(equals('contents')));
     });
   });
 
-  expectTestsPass("file().describe() returns the filename", () {
-    test('test', () {
-      expect(d.file('name.txt', 'contents').describe(), equals('name.txt'));
+  expectTestPasses('file().create() overwrites an existing file', () {
+    scheduleSandbox();
+
+    d.file('name.txt', 'contents1').create();
+
+    d.file('name.txt', 'contents2').create();
+
+    schedule(() {
+      expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
+          completion(equals('contents2')));
     });
   });
 
-  expectTestsPass('binaryFile().create() creates a file', () {
-    test('test', () {
-      scheduleSandbox();
+  expectTestPasses('file().validate() completes successfully if the filesystem '
+      'matches the descriptor', () {
+    scheduleSandbox();
 
-      d.binaryFile('name.bin', [1, 2, 3, 4, 5]).create();
+    schedule(() {
+      return new File(path.join(sandbox, 'name.txt'))
+          .writeAsString('contents');
+    });
 
-      schedule(() {
-        expect(new File(path.join(sandbox, 'name.bin')).readAsBytes(),
-            completion(equals([1, 2, 3, 4, 5])));
-      });
+    d.file('name.txt', 'contents').validate();
+  });
+
+  expectTestFailure("file().validate() fails if there's a file with the wrong "
+      "contents", () {
+    scheduleSandbox();
+
+    schedule(() {
+      return new File(path.join(sandbox, 'name.txt'))
+          .writeAsString('wrongtents');
+    });
+
+    d.file('name.txt', 'contents').validate();
+  }, (error) {
+    expect(error.toString(), equals(
+        "File 'name.txt' should contain:\n"
+        "| contents\n"
+        "but actually contained:\n"
+        "X wrongtents"));
+  });
+
+  expectTestFailure("file().validate() fails if there's no file", () {
+    scheduleSandbox();
+
+    d.file('name.txt', 'contents').validate();
+  }, (error) {
+    expect(error.toString(),
+        matches(r"^File not found: '[^']+[\\/]name\.txt'\.$"));
+  });
+
+  expectTestPasses("file().read() returns the contents of the file as a stream",
+      () {
+    expect(byteStreamToString(d.file('name.txt', 'contents').read()),
+        completion(equals('contents')));
+  });
+
+  expectTestPasses("file().describe() returns the filename", () {
+    expect(d.file('name.txt', 'contents').describe(), equals('name.txt'));
+  });
+
+  expectTestPasses('binaryFile().create() creates a file', () {
+    scheduleSandbox();
+
+    d.binaryFile('name.bin', [1, 2, 3, 4, 5]).create();
+
+    schedule(() {
+      expect(new File(path.join(sandbox, 'name.bin')).readAsBytes(),
+          completion(equals([1, 2, 3, 4, 5])));
     });
   });
 
-  expectTestsPass('binaryFile().validate() completes successfully if the '
+  expectTestPasses('binaryFile().validate() completes successfully if the '
       'filesystem matches the descriptor', () {
-    test('test', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      schedule(() {
-        return new File(path.join(sandbox, 'name.bin'))
-            .writeAsBytes([1, 2, 3, 4, 5]);
-      });
-
-      d.binaryFile('name.bin', [1, 2, 3, 4, 5]).validate();
+    schedule(() {
+      return new File(path.join(sandbox, 'name.bin'))
+          .writeAsBytes([1, 2, 3, 4, 5]);
     });
+
+    d.binaryFile('name.bin', [1, 2, 3, 4, 5]).validate();
   });
 
-  expectTestsPass("binaryFile().validate() fails if there's a file with the "
+  expectTestFailure("binaryFile().validate() fails if there's a file with the "
       "wrong contents", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.bin'))
-            .writeAsBytes([2, 4, 6, 8, 10]);
-      });
-
-      d.binaryFile('name.bin', [1, 2, 3, 4, 5]).validate();
+    schedule(() {
+      return new File(path.join(sandbox, 'name.bin'))
+          .writeAsBytes([2, 4, 6, 8, 10]);
     });
 
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(), equals(
-          "File 'name.bin' didn't contain the expected binary data."));
-    });
-  }, passing: ['test 2']);
+    d.binaryFile('name.bin', [1, 2, 3, 4, 5]).validate();
+  }, (error) {
+    expect(error.toString(), equals(
+        "File 'name.bin' didn't contain the expected binary data."));
+  });
 
-  expectTestsPass('matcherFile().create() creates an empty file', () {
-    test('test', () {
-      scheduleSandbox();
+  expectTestPasses('matcherFile().create() creates an empty file', () {
+    scheduleSandbox();
 
-      d.matcherFile('name.txt', isNot(isEmpty)).create();
+    d.matcherFile('name.txt', isNot(isEmpty)).create();
 
-      schedule(() {
-        expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
-            completion(equals('')));
-      });
+    schedule(() {
+      expect(new File(path.join(sandbox, 'name.txt')).readAsString(),
+          completion(equals('')));
     });
   });
 
-  expectTestsPass('matcherFile().validate() completes successfully if the '
+  expectTestPasses('matcherFile().validate() completes successfully if the '
       'string contents of the file matches the matcher', () {
-    test('test', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('barfoobaz');
-      });
-
-      d.matcherFile('name.txt', contains('foo')).validate();
+    schedule(() {
+      return new File(path.join(sandbox, 'name.txt'))
+          .writeAsString('barfoobaz');
     });
+
+    d.matcherFile('name.txt', contains('foo')).validate();
   });
 
-  expectTestsPass("matcherFile().validate() fails if the string contents of "
+  expectTestFailure("matcherFile().validate() fails if the string contents of "
       "the file doesn't match the matcher", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('barfoobaz');
-      });
-
-      d.matcherFile('name.txt', contains('baaz')).validate();
+    schedule(() {
+      return new File(path.join(sandbox, 'name.txt'))
+          .writeAsString('barfoobaz');
     });
 
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(), equals(
-          "Expected: contains 'baaz'\n"
-          "  Actual: 'barfoobaz'\n"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass('binaryMatcherFile().validate() completes successfully if '
-      'the string contents of the file matches the matcher', () {
-    test('test', () {
-      scheduleSandbox();
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('barfoobaz');
-      });
-
-      d.binaryMatcherFile('name.txt', contains(111)).validate();
-    });
+    d.matcherFile('name.txt', contains('baaz')).validate();
+  }, (error) {
+    expect(error.toString(), equals(
+        "Expected: contains 'baaz'\n"
+        "  Actual: 'barfoobaz'\n"));
   });
 
-  expectTestsPass("binaryMatcherFile().validate() fails if the string contents "
-      "of the file doesn't match the matcher", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+  expectTestPasses('binaryMatcherFile().validate() completes successfully if '
+      'the string contents of the file matches the matcher', () {
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      schedule(() {
-        return new File(path.join(sandbox, 'name.txt'))
-            .writeAsString('barfoobaz');
-      });
-
-      d.binaryMatcherFile('name.txt', contains(12)).validate();
+    schedule(() {
+      return new File(path.join(sandbox, 'name.txt'))
+          .writeAsString('barfoobaz');
     });
 
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(), equals(
-          "Expected: contains <12>\n"
-          "  Actual: [98, 97, 114, 102, 111, 111, 98, 97, 122]\n"));
+    d.binaryMatcherFile('name.txt', contains(111)).validate();
+  });
+
+  expectTestFailure("binaryMatcherFile().validate() fails if the string "
+      "contents of the file doesn't match the matcher", () {
+    scheduleSandbox();
+
+    schedule(() {
+      return new File(path.join(sandbox, 'name.txt'))
+          .writeAsString('barfoobaz');
     });
-  }, passing: ['test 2']);
+
+    d.binaryMatcherFile('name.txt', contains(12)).validate();
+  }, (error) {
+    expect(error.toString(), equals(
+        "Expected: contains <12>\n"
+        "  Actual: [98, 97, 114, 102, 111, 111, 98, 97, 122]\n"));
+  });
 }

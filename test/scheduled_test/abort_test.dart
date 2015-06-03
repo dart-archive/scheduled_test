@@ -12,25 +12,21 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass("aborting the schedule before it's started running should "
+  expectTestPasses("aborting the schedule before it's started running should "
       "cause no tasks to be run", () {
-    test('test', () {
-      schedule(() {
-        throw 'error';
-      });
-
-      currentSchedule.abort();
+    schedule(() {
+      throw 'error';
     });
+
+    currentSchedule.abort();
   });
 
-  expectTestsPass("aborting the schedule while it's running should stop future "
-      "tasks from running", () {
-    test('test', () {
-      schedule(currentSchedule.abort);
+  expectTestPasses("aborting the schedule while it's running should stop "
+      "future tasks from running", () {
+    schedule(currentSchedule.abort);
 
-      schedule(() {
-        throw 'error';
-      });
+    schedule(() {
+      throw 'error';
     });
   });
 
@@ -50,44 +46,38 @@ void _test(message) {
     });
   });
 
-  expectTestsPass("aborting the schedule while it's running shouldn't stop "
+  expectTestPasses("aborting the schedule while it's running shouldn't stop "
       "out-of-band callbacks", () {
-    test('test', () {
-      var outOfBandFinished = false;
-      schedule(() {
-        wrapFuture(pumpEventQueue().then((_) {
-          outOfBandFinished = true;
-        }));
+    var outOfBandFinished = false;
+    schedule(() {
+      wrapFuture(pumpEventQueue().then((_) {
+        outOfBandFinished = true;
+      }));
 
-        currentSchedule.abort();
-      });
+      currentSchedule.abort();
+    });
 
-      currentSchedule.onComplete.schedule(() {
-        expect(outOfBandFinished, isTrue);
-      });
+    currentSchedule.onComplete.schedule(() {
+      expect(outOfBandFinished, isTrue);
     });
   });
 
-  expectTestsPass("aborting the schedule in a non-tasks queue should stop "
+  expectTestPasses("aborting the schedule in a non-tasks queue should stop "
       "future tasks from running", () {
-    test('test', () {
-      currentSchedule.onComplete.schedule(() {
-        currentSchedule.abort();
-      });
+    currentSchedule.onComplete.schedule(() {
+      currentSchedule.abort();
+    });
 
-      currentSchedule.onComplete.schedule(() {
-        throw 'error';
-      });
+    currentSchedule.onComplete.schedule(() {
+      throw 'error';
     });
   });
 
-  expectTestsFail("aborting the schedule after an out-of-band error should "
+  expectTestFailure("aborting the schedule after an out-of-band error should "
       "still surface the error", () {
-    test('test', () {
-      schedule(() {
-        currentSchedule.signalError('error');
-        currentSchedule.abort();
-      });
+    schedule(() {
+      currentSchedule.signalError('error');
+      currentSchedule.abort();
     });
-  });
+  }, (error) => expect(error, equals('error')));
 }

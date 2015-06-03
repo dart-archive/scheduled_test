@@ -13,55 +13,45 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsFail('an out-of-band failure in wrapFuture is handled', () {
+  expectTestFailure('an out-of-band failure in wrapFuture is handled', () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        wrapFuture(sleep(1).then((_) => expect('foo', equals('bar'))));
-      });
-      schedule(() => sleep(2));
+    schedule(() {
+      wrapFuture(sleep(1).then((_) => expect('foo', equals('bar'))));
     });
-  });
+    schedule(() => sleep(2));
+  }, (error) => expect(error, isTestFailure));
 
-  expectTestsFail('an out-of-band failure in wrapFuture that finishes after '
+  expectTestFailure('an out-of-band failure in wrapFuture that finishes after '
       'the schedule is handled', () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        wrapFuture(sleep(2).then((_) => expect('foo', equals('bar'))));
-      });
-      schedule(() => sleep(1));
+    schedule(() {
+      wrapFuture(sleep(2).then((_) => expect('foo', equals('bar'))));
+    });
+    schedule(() => sleep(1));
+  }, (error) => expect(error, isTestFailure));
+
+  expectTestPasses("wrapFuture should return the value of the wrapped future",
+      () {
+    schedule(() {
+      expect(wrapFuture(pumpEventQueue().then((_) => 'foo')),
+          completion(equals('foo')));
     });
   });
 
-  expectTestsPass("wrapFuture should return the value of the wrapped future",
+  expectTestPasses("a returned future should be implicitly wrapped",
       () {
-    test('test', () {
-      schedule(() {
-        expect(wrapFuture(pumpEventQueue().then((_) => 'foo')),
-            completion(equals('foo')));
-      });
-    });
+    var futureComplete = false;
+    currentSchedule.onComplete.schedule(() => expect(futureComplete, isTrue));
+
+    return pumpEventQueue().then((_) => futureComplete = true);
   });
 
-  expectTestsPass("a returned future should be implicitly wrapped",
+  expectTestPasses("a returned future should not block the schedule",
       () {
-    test('test', () {
-      var futureComplete = false;
-      currentSchedule.onComplete.schedule(() => expect(futureComplete, isTrue));
+    var futureComplete = false;
+    schedule(() => expect(futureComplete, isFalse));
 
-      return pumpEventQueue().then((_) => futureComplete = true);
-    });
-  });
-
-  expectTestsPass("a returned future should not block the schedule",
-      () {
-    test('test', () {
-      var futureComplete = false;
-      schedule(() => expect(futureComplete, isFalse));
-
-      return pumpEventQueue().then((_) => futureComplete = true);
-    });
+    return pumpEventQueue().then((_) => futureComplete = true);
   });
 
   expectTestsPass("wrapFuture should pass through the error of the wrapped "
@@ -82,22 +72,10 @@ void _test(message) {
     });
   }, passing: ['test 2']);
 
-  expectTestsPass("scheduled blocks whose return values are passed to "
+  expectTestFailure("scheduled blocks whose return values are passed to "
       "wrapFuture should report exceptions once", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      wrapFuture(schedule(() {
-        throw 'error';
-      }));
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error']));
-    });
-  }, passing: ['test 2']);
+    wrapFuture(schedule(() {
+      throw 'error';
+    }));
+  }, (error) => expect(error, equals('error')));
 }

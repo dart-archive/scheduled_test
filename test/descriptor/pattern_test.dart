@@ -15,149 +15,103 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass("pattern().validate() succeeds if there's a file matching "
+  expectTestPasses("pattern().validate() succeeds if there's a file matching "
       "the pattern and the child entry", () {
-    test('test', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      d.file('foo', 'blap').create();
+    d.file('foo', 'blap').create();
 
-      d.filePattern(new RegExp(r'f..'), 'blap').validate();
-    });
+    d.filePattern(new RegExp(r'f..'), 'blap').validate();
   });
 
-  expectTestsPass("pattern().validate() succeeds if there's a dir matching "
+  expectTestPasses("pattern().validate() succeeds if there's a dir matching "
       "the pattern and the child entry", () {
-    test('test', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      d.dir('foo', [
-        d.file('bar', 'baz')
-      ]).create();
+    d.dir('foo', [
+      d.file('bar', 'baz')
+    ]).create();
 
-      d.dirPattern(new RegExp(r'f..'), [
-        d.file('bar', 'baz')
-      ]).validate();
-    });
+    d.dirPattern(new RegExp(r'f..'), [
+      d.file('bar', 'baz')
+    ]).validate();
   });
 
-  expectTestsPass("pattern().validate() succeeds if there's multiple files "
+  expectTestPasses("pattern().validate() succeeds if there's multiple files "
       "matching the pattern but only one matching the child entry", () {
-    test('test', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      d.file('foo', 'blap').create();
-      d.file('fee', 'blak').create();
-      d.file('faa', 'blut').create();
+    d.file('foo', 'blap').create();
+    d.file('fee', 'blak').create();
+    d.file('faa', 'blut').create();
 
-      d.filePattern(new RegExp(r'f..'), 'blap').validate();
-    });
+    d.filePattern(new RegExp(r'f..'), 'blap').validate();
   });
 
-  expectTestsPass("pattern().validate() fails if there's no file matching the "
-      "pattern", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+  expectTestFailure("pattern().validate() fails if there's no file matching "
+      "the pattern", () {
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    d.filePattern(new RegExp(r'f..'), 'bar').validate();
+  }, (error) {
+    expect(error.toString(),
+        matches(r"^No entry found in '[^']+' matching /f\.\./\.$"));
+  });
 
-      d.filePattern(new RegExp(r'f..'), 'bar').validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^No entry found in '[^']+' matching /f\.\./\.$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("pattern().validate() fails if there's a file matching the "
+  expectTestFailure("pattern().validate() fails if there's a file matching the "
       "pattern but not the entry", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    d.file('foo', 'bap').create();
+    d.filePattern(new RegExp(r'f..'), 'bar').validate();
+  }, (error) {
+    expect(error.toString(),
+        matches(r"^Caught error\n"
+            r"| File 'foo' should contain:\n"
+            r"| | bar\n"
+            r"| but actually contained:\n"
+            r"| X bap\n"
+            r"while validating\n"
+            r"| foo$"));
+  });
 
-      d.file('foo', 'bap').create();
-      d.filePattern(new RegExp(r'f..'), 'bar').validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^Caught error\n"
-              r"| File 'foo' should contain:\n"
-              r"| | bar\n"
-              r"| but actually contained:\n"
-              r"| X bap\n"
-              r"while validating\n"
-              r"| foo$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("pattern().validate() fails if there's a dir matching the "
+  expectTestFailure("pattern().validate() fails if there's a dir matching the "
       "pattern but not the entry", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    d.dir('foo', [
+      d.file('bar', 'bap')
+    ]).create();
 
-      d.dir('foo', [
-        d.file('bar', 'bap')
-      ]).create();
+    d.dirPattern(new RegExp(r'f..'), [
+      d.file('bar', 'baz')
+    ]).validate();
+  }, (error) {
+    expect(error.toString(),
+        matches(r"^Caught error\n"
+            r"| File 'bar' should contain:\n"
+            r"| | baz\n"
+            r"| but actually contained:\n"
+            r"| X bap"
+            r"while validating\n"
+            r"| foo\n"
+            r"| '-- bar$"));
+  });
 
-      d.dirPattern(new RegExp(r'f..'), [
-        d.file('bar', 'baz')
-      ]).validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(),
-          matches(r"^Caught error\n"
-              r"| File 'bar' should contain:\n"
-              r"| | baz\n"
-              r"| but actually contained:\n"
-              r"| X bap"
-              r"while validating\n"
-              r"| foo\n"
-              r"| '-- bar$"));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("pattern().validate() fails if there's multiple files "
+  expectTestFailure("pattern().validate() fails if there's multiple files "
       "matching the pattern and the child entry", () {
-    var errors;
-    test('test 1', () {
-      scheduleSandbox();
+    scheduleSandbox();
 
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      d.file('foo', 'bar').create();
-      d.file('fee', 'bar').create();
-      d.file('faa', 'bar').create();
-      d.filePattern(new RegExp(r'f..'), 'bar').validate();
-    });
-
-    test('test 2', () {
-      expect(errors.single, new isInstanceOf<ScheduleError>());
-      expect(errors.single.error.toString(), matches(
-          r"^Multiple valid entries found in '[^']+' matching "
-          r"\/f\.\./:\n"
-          r"\* faa\n"
-          r"\* fee\n"
-          r"\* foo$"));
-    });
-  }, passing: ['test 2']);
+    d.file('foo', 'bar').create();
+    d.file('fee', 'bar').create();
+    d.file('faa', 'bar').create();
+    d.filePattern(new RegExp(r'f..'), 'bar').validate();
+  }, (error) {
+    expect(error.toString(), matches(
+        r"^Multiple valid entries found in '[^']+' matching "
+        r"\/f\.\./:\n"
+        r"\* faa\n"
+        r"\* fee\n"
+        r"\* foo$"));
+  });
 }

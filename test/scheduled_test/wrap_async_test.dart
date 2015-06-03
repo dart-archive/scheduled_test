@@ -13,24 +13,20 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsFail('an out-of-band failure in wrapAsync is handled', () {
+  expectTestFailure('an out-of-band failure in wrapAsync is handled', () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        sleep(1).then(wrapAsync((_) => expect('foo', equals('bar'))));
-      });
-      schedule(() => sleep(2));
+    schedule(() {
+      sleep(1).then(wrapAsync((_) => expect('foo', equals('bar'))));
     });
-  });
+    schedule(() => sleep(2));
+  }, (error) => expect(error, isTestFailure));
 
-  expectTestsFail('an out-of-band failure in wrapAsync that finishes after the '
-      'schedule is handled', () {
+  expectTestFailure('an out-of-band failure in wrapAsync that finishes after '
+      'the schedule is handled', () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        sleep(2).then(wrapAsync((_) => expect('foo', equals('bar'))));
-      });
-      schedule(() => sleep(1));
+    schedule(() {
+      sleep(2).then(wrapAsync((_) => expect('foo', equals('bar'))));
     });
-  });
+    schedule(() => sleep(1));
+  }, (error) => expect(error, isTestFailure));
 }

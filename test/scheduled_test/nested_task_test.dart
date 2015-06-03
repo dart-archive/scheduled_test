@@ -13,102 +13,69 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass("nested schedule() runs its function immediately (but "
+  expectTestPasses("nested schedule() runs its function immediately (but "
       "asynchronously)", () {
-    test('test', () {
+    schedule(() {
+      var nestedScheduleRun = false;
       schedule(() {
-        var nestedScheduleRun = false;
-        schedule(() {
-          nestedScheduleRun = true;
-        });
-
-        expect(nestedScheduleRun, isFalse);
-        expect(pumpEventQueue().then((_) => nestedScheduleRun),
-            completion(isTrue));
+        nestedScheduleRun = true;
       });
+
+      expect(nestedScheduleRun, isFalse);
+      expect(pumpEventQueue().then((_) => nestedScheduleRun),
+          completion(isTrue));
     });
   });
 
-  expectTestsPass("nested schedule() calls don't wait for one another", () {
+  expectTestPasses("nested schedule() calls don't wait for one another", () {
     mock_clock.mock().run();
-    test('test', () {
-      var sleepFinished = false;
-      schedule(() {
-        schedule(() => sleep(1).then((_) {
-          sleepFinished = true;
-        }));
-        schedule(() => expect(sleepFinished, isFalse));
-      });
+    var sleepFinished = false;
+    schedule(() {
+      schedule(() => sleep(1).then((_) {
+        sleepFinished = true;
+      }));
+      schedule(() => expect(sleepFinished, isFalse));
     });
   });
 
-  expectTestsPass("nested schedule() calls block their parent task", () {
+  expectTestPasses("nested schedule() calls block their parent task", () {
     mock_clock.mock().run();
-    test('test', () {
-      var sleepFinished = false;
-      schedule(() {
-        schedule(() => sleep(1).then((_) {
-          sleepFinished = true;
-        }));
-      });
-
-      schedule(() => expect(sleepFinished, isTrue));
+    var sleepFinished = false;
+    schedule(() {
+      schedule(() => sleep(1).then((_) {
+        sleepFinished = true;
+      }));
     });
+
+    schedule(() => expect(sleepFinished, isTrue));
   });
 
-  expectTestsPass("nested schedule() calls forward their Future values", () {
+  expectTestPasses("nested schedule() calls forward their Future values", () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        expect(schedule(() => 'foo'), completion(equals('foo')));
-      });
+    schedule(() {
+      expect(schedule(() => 'foo'), completion(equals('foo')));
     });
   });
 
-  expectTestsPass("errors in nested schedule() calls are properly registered",
+  expectTestFailure("errors in nested schedule() calls are properly registered",
       () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
+    schedule(() {
       schedule(() {
-        schedule(() {
-          throw 'error';
-        });
+        throw 'error';
       });
     });
+  }, (error) => expect(error, equals('error')));
 
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error']));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("nested scheduled blocks whose return values are passed to "
+  expectTestFailure("nested scheduled blocks whose return values are passed to "
       "wrapFuture should report exceptions once", () {
-    var error = 'oh no!';
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    schedule(() {
+      wrapFuture(schedule(() {
+        throw 'error';
+      }));
 
-      schedule(() {
-        wrapFuture(schedule(() {
-          throw error;
-        }));
-
-        return pumpEventQueue();
-      });
+      return pumpEventQueue();
     });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals([error]));
-    });
-  }, passing: ['test 2']);
+  }, (error) => expect(error, equals('error')));
 
   expectTestsPass("a nested task failing shouldn't short-circuit the parent "
       "task", () {

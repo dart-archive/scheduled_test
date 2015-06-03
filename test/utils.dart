@@ -14,6 +14,9 @@ import 'package:metatest/metatest.dart';
 
 export 'package:scheduled_test/src/utils.dart';
 
+/// A matcher that validates whether an object is a [TestFailure].
+final isTestFailure = new isInstanceOf<TestFailure>();
+
 /// Returns a [Future] that will complete in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
@@ -51,4 +54,14 @@ void expectTestFails(String description, Future testBody(),
       validator(errors);
     });
   }, passing: ['validate errors']);
+}
+
+/// Like [expectTestFails], but expects there to be only a single error and
+/// unwraps that error before passing it to [validator].
+void expectTestFailure(String description, Future testBody(),
+    void validator(error))  {
+  expectTestFails(description, testBody, (errors) {
+    expect(errors, hasLength(1));
+    validator(errors.single.error);
+  });
 }

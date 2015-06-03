@@ -13,36 +13,32 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass("out-of-band schedule() runs its function immediately (but "
+  expectTestPasses("out-of-band schedule() runs its function immediately (but "
       "asynchronously)", () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        wrapFuture(sleep(1).then((_) {
-          var nestedScheduleRun = false;
-          schedule(() {
-            nestedScheduleRun = true;
-          });
+    schedule(() {
+      wrapFuture(sleep(1).then((_) {
+        var nestedScheduleRun = false;
+        schedule(() {
+          nestedScheduleRun = true;
+        });
 
-          expect(nestedScheduleRun, isFalse);
-          expect(pumpEventQueue().then((_) => nestedScheduleRun),
-              completion(isTrue));
-        }));
-      });
+        expect(nestedScheduleRun, isFalse);
+        expect(pumpEventQueue().then((_) => nestedScheduleRun),
+            completion(isTrue));
+      }));
     });
   });
 
-  expectTestsPass("out-of-band schedule() calls block their parent queue", () {
+  expectTestPasses("out-of-band schedule() calls block their parent queue", () {
     mock_clock.mock().run();
-    test('test', () {
-      var scheduleRun = false;
-      wrapFuture(sleep(1).then((_) {
-        schedule(() => sleep(1).then((_) {
-          scheduleRun = true;
-        }));
+    var scheduleRun = false;
+    wrapFuture(sleep(1).then((_) {
+      schedule(() => sleep(1).then((_) {
+        scheduleRun = true;
       }));
+    }));
 
-      currentSchedule.onComplete.schedule(() => expect(scheduleRun, isTrue));
-    });
+    currentSchedule.onComplete.schedule(() => expect(scheduleRun, isTrue));
   });
 }

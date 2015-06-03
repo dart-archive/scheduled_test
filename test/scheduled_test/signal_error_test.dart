@@ -13,35 +13,29 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsFail('an out-of-band error reported via signalError is '
+  expectTestFailure('an out-of-band error reported via signalError is '
       'handled', () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        sleep(1).then((_) => currentSchedule.signalError('bad'));
-      });
-      schedule(() => sleep(2));
+    schedule(() {
+      sleep(1).then((_) => currentSchedule.signalError('bad'));
     });
-  });
+    schedule(() => sleep(2));
+  }, (error) => expect(error, equals('bad')));
 
-  expectTestsFail('an out-of-band error reported via signalError that finished '
-      'after the schedule is handled', () {
+  expectTestFailure('an out-of-band error reported via signalError that '
+      'finished after the schedule is handled', () {
     mock_clock.mock().run();
-    test('test', () {
-      schedule(() {
-        var done = wrapAsync((_) {});
-        sleep(2).then((_) {
-          currentSchedule.signalError('bad');
-          done(null);
-        });
+    schedule(() {
+      var done = wrapAsync((_) {});
+      sleep(2).then((_) {
+        currentSchedule.signalError('bad');
+        done(null);
       });
-      schedule(() => sleep(1));
     });
-  });
+    schedule(() => sleep(1));
+  }, (error) => expect(error, equals('bad')));
 
-  expectTestsFail('a synchronous error reported via signalError is handled', () {
-    test('test', () {
-      currentSchedule.signalError('bad');
-    });
-  });
+  expectTestFailure('a synchronous error reported via signalError is handled',
+      () => currentSchedule.signalError('bad'),
+      (error) => expect(error, equals('bad')));
 }

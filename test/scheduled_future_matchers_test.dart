@@ -12,73 +12,30 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass("expect(..., completes) with a completing future should pass",
-      () {
-    test('test', () {
-      expect(pumpEventQueue(), completes);
-    });
-  });
-
-  expectTestsPass("expect(..., completes) with a failing future should signal "
-      "an out-of-band error", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      expect(pumpEventQueue().then((_) {
-        throw 'error';
-      }), completes);
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error']));
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("expect(..., completion(...)) with a matching future should "
+  expectTestPasses("expect(..., completes) with a completing future should "
       "pass", () {
-    test('test', () {
-      expect(pumpEventQueue().then((_) => 'foo'), completion(equals('foo')));
-    });
+    expect(pumpEventQueue(), completes);
   });
 
-  expectTestsPass("expect(..., completion(...)) with a non-matching future "
-      "should signal an out-of-band error", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
-
-      expect(pumpEventQueue().then((_) => 'foo'), completion(equals('bar')));
-    });
-
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.length, equals(1));
-      expect(errors.first.error, new isInstanceOf<TestFailure>());
-    });
-  }, passing: ['test 2']);
-
-  expectTestsPass("expect(..., completion(...)) with a failing future should "
+  expectTestFailure("expect(..., completes) with a failing future should "
       "signal an out-of-band error", () {
-    var errors;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        errors = currentSchedule.errors;
-      });
+    expect(pumpEventQueue().then((_) => throw 'error'), completes);
+  }, (error) => expect(error, equals('error')));
 
-      expect(pumpEventQueue().then((_) {
-        throw 'error';
-      }), completion(equals('bar')));
-    });
+  expectTestPasses("expect(..., completion(...)) with a matching future should "
+      "pass", () {
+    expect(pumpEventQueue().then((_) => 'foo'), completion(equals('foo')));
+  });
 
-    test('test 2', () {
-      expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
-      expect(errors.map((e) => e.error), equals(['error']));
-    });
-  }, passing: ['test 2']);
+  expectTestFailure("expect(..., completion(...)) with a non-matching future "
+      "should signal an out-of-band error", () {
+    expect(pumpEventQueue().then((_) => 'foo'), completion(equals('bar')));
+  }, (error) => expect(error, isTestFailure));
+
+  expectTestFailure("expect(..., completion(...)) with a failing future should "
+      "signal an out-of-band error", () {
+    expect(pumpEventQueue().then((_) {
+      throw 'error';
+    }), completion(equals('bar')));
+  }, (error) => expect(error, equals('error')));
 }

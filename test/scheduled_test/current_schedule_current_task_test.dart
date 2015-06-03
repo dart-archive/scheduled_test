@@ -12,56 +12,46 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass('currentSchedule.currentTask returns the current task while '
+  expectTestPasses('currentSchedule.currentTask returns the current task while '
       'executing a task', () {
-    test('test', () {
-      schedule(() => expect('foo', equals('foo')), 'task 1');
+    schedule(() => expect('foo', equals('foo')), 'task 1');
 
-      schedule(() {
-        expect(currentSchedule.currentTask.description, equals('task 2'));
-      }, 'task 2');
+    schedule(() {
+      expect(currentSchedule.currentTask.description, equals('task 2'));
+    }, 'task 2');
 
-      schedule(() => expect('bar', equals('bar')), 'task 3');
-    });
+    schedule(() => expect('bar', equals('bar')), 'task 3');
   });
 
-  expectTestsPass('currentSchedule.currentTask is null before the schedule has '
-      'started', () {
-    test('test', () {
-      schedule(() => expect('foo', equals('foo')));
-
-      expect(currentSchedule.currentTask, isNull);
-    });
-  });
-
-  expectTestsPass('currentSchedule.currentTask is null after the schedule has '
-      'completed', () {
-    test('test', () {
-      schedule(() {
-        expect(pumpEventQueue().then((_) {
-          expect(currentSchedule.currentTask, isNull);
-        }), completes);
-      });
-
-      schedule(() => expect('foo', equals('foo')));
-    });
-  });
-
-  expectTestsPass('currentSchedule.currentQueue returns the current queue '
-      'while executing a task', () {
-    test('test', () {
-      schedule(() {
-        expect(currentSchedule.currentQueue.name, equals('tasks'));
-      });
-    });
-  });
-
-  expectTestsPass('currentSchedule.currentQueue is tasks before the schedule '
+  expectTestPasses('currentSchedule.currentTask is null before the schedule '
       'has started', () {
-    test('test', () {
-      schedule(() => expect('foo', equals('foo')));
+    schedule(() => expect('foo', equals('foo')));
 
+    expect(currentSchedule.currentTask, isNull);
+  });
+
+  expectTestPasses('currentSchedule.currentTask is null after the schedule has '
+      'completed', () {
+    schedule(() {
+      expect(pumpEventQueue().then((_) {
+        expect(currentSchedule.currentTask, isNull);
+      }), completes);
+    });
+
+    schedule(() => expect('foo', equals('foo')));
+  });
+
+  expectTestPasses('currentSchedule.currentQueue returns the current queue '
+      'while executing a task', () {
+    schedule(() {
       expect(currentSchedule.currentQueue.name, equals('tasks'));
     });
+  });
+
+  expectTestPasses('currentSchedule.currentQueue is tasks before the schedule '
+      'has started', () {
+    schedule(() => expect('foo', equals('foo')));
+
+    expect(currentSchedule.currentQueue.name, equals('tasks'));
   });
 }

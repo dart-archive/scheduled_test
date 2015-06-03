@@ -12,21 +12,17 @@ void main() => initTests(_test);
 void _test(message) {
   initMetatest(message);
 
-  expectTestsPass('currentSchedule.state starts out as SET_UP', () {
-    test('test', () {
-      expect(currentSchedule.state, equals(ScheduleState.SET_UP));
-    });
+  expectTestPasses('currentSchedule.state starts out as SET_UP', () {
+    expect(currentSchedule.state, equals(ScheduleState.SET_UP));
   });
 
-  expectTestsPass('currentSchedule.state is RUNNING in tasks', () {
-    test('test', () {
-      schedule(() {
-        expect(currentSchedule.state, equals(ScheduleState.RUNNING));
-      });
+  expectTestPasses('currentSchedule.state is RUNNING in tasks', () {
+    schedule(() {
+      expect(currentSchedule.state, equals(ScheduleState.RUNNING));
+    });
 
-      currentSchedule.onComplete.schedule(() {
-        expect(currentSchedule.state, equals(ScheduleState.RUNNING));
-      });
+    currentSchedule.onComplete.schedule(() {
+      expect(currentSchedule.state, equals(ScheduleState.RUNNING));
     });
   });
 
