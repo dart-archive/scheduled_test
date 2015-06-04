@@ -7,7 +7,7 @@ library scheduled_test.scheduled_stream_test;
 import 'dart:async';
 
 import 'package:scheduled_test/scheduled_stream.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:scheduled_test/src/utils.dart';
 
 void main() {

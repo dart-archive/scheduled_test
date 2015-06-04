@@ -7,7 +7,7 @@ library value_future_test;
 import 'dart:async';
 
 import 'package:scheduled_test/src/value_future.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('works like a normal Future for', () {

@@ -9,11 +9,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestPasses('a scheduled test with a correct synchronous expectation '
       'should pass', () {
     expect('foo', equals('foo'));
@@ -76,6 +72,22 @@ void _test(message) {
       expect(future, completion(equals('value')));
     });
   });
+
+  expectTestsPass("an error thrown in a scheduled task should be piped to that "
+      "task's return value", () {
+    var error;
+    test('test 1', () {
+      schedule(() {
+        throw 'error';
+      }).catchError((e) {
+        error = e;
+      });
+    });
+
+    test('test 2', () {
+      expect(error, equals('error'));
+    });
+  }, passing: ['test 2']);
 
   expectTestPasses('scheduled blocks should wait for their Future return '
       'values to complete before proceeding', () {

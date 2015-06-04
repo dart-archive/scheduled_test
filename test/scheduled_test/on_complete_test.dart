@@ -7,11 +7,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestsPass('the onComplete queue is run if a test is successful', () {
     var onCompleteRun = false;
     test('test 1', () {
@@ -35,7 +31,7 @@ void _test(message) {
         expect(outOfBandRun, isTrue);
       });
 
-      pumpEventQueue().then(wrapAsync((_) {
+      pumpEventQueue().then(expectAsync((_) {
         outOfBandRun = true;
       }));
     });
@@ -49,12 +45,12 @@ void _test(message) {
       currentSchedule.onComplete.schedule(() {
         expect(outOfBand1Run, isTrue);
 
-        pumpEventQueue().then(wrapAsync((_) {
+        pumpEventQueue().then(expectAsync((_) {
           outOfBand2Run = true;
         }));
       });
 
-      pumpEventQueue().then(wrapAsync((_) {
+      pumpEventQueue().then(expectAsync((_) {
         outOfBand1Run = true;
       }));
     });
@@ -65,28 +61,9 @@ void _test(message) {
   expectTestFailure('an out-of-band callback in the onComplete queue blocks '
       'the test', () {
     currentSchedule.onComplete.schedule(() {
-      pumpEventQueue().then(wrapAsync((_) => throw 'error'));
+      pumpEventQueue().then(expectAsync((_) => throw 'error'));
     });
   }, (error) => expect(error, equals('error')));
-
-  expectTestsPass('an out-of-band callback blocks onComplete even with an '
-      'unrelated error', () {
-    var outOfBandRun = false;
-    var outOfBandSetInOnComplete = false;
-    test('test 1', () {
-      currentSchedule.onComplete.schedule(() {
-        outOfBandSetInOnComplete = outOfBandRun;
-      });
-
-      pumpEventQueue().then(wrapAsync((_) {
-        outOfBandRun = true;
-      }));
-
-      schedule(() => expect('foo', equals('bar')));
-    });
-
-    test('test 2', () => expect(outOfBandSetInOnComplete, isTrue));
-  }, passing: ['test 2']);
 
   expectTestsPass('the onComplete queue is run after an asynchronous error',
       () {
@@ -126,7 +103,7 @@ void _test(message) {
         onCompleteRun = true;
       });
 
-      pumpEventQueue().then(wrapAsync((_) => expect('foo', equals('bar'))));
+      pumpEventQueue().then(expectAsync((_) => expect('foo', equals('bar'))));
     });
 
     test('test 2', () {

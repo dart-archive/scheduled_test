@@ -106,9 +106,6 @@ void chainToCompleter(Future future, Completer completer) {
   future.then(completer.complete, onError: completer.completeError);
 }
 
-/// Like [Future.sync], but wraps the Future in [Chain.track] as well.
-Future syncFuture(callback()) => Chain.track(new Future.sync(callback));
-
 /// Prepends each line in [text] with [prefix]. If [firstPrefix] is passed, the
 /// first line is prefixed with that instead.
 String prefixLines(String text, {String prefix: '| ', String firstPrefix}) {

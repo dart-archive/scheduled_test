@@ -31,11 +31,7 @@ ScheduledStream createStream() {
   return stream;
 }
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestPasses("expect() with matching values passes", () {
     var stream = createStream();
     stream.expect(1);

@@ -24,7 +24,7 @@ class NothingDescriptor extends Descriptor {
   Future validate([String parent]) => schedule(() => validateNow(parent),
       "validating '$name' doesn't exist");
 
-  Future validateNow([String parent]) => syncFuture(() {
+  Future validateNow([String parent]) => new Future.sync(() {
     if (parent == null) parent = defaultRoot;
     var fullPath = path.join(parent, name);
     if (new File(fullPath).existsSync()) {

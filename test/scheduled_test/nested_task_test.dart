@@ -3,15 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
 import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
+void main() {
+  setUpMockClock();
 
   expectTestPasses("nested schedule() runs its function immediately (but "
       "asynchronously)", () {
@@ -28,7 +25,7 @@ void _test(message) {
   });
 
   expectTestPasses("nested schedule() calls don't wait for one another", () {
-    mock_clock.mock().run();
+    mockClock.run();
     var sleepFinished = false;
     schedule(() {
       schedule(() => sleep(1).then((_) {
@@ -39,7 +36,7 @@ void _test(message) {
   });
 
   expectTestPasses("nested schedule() calls block their parent task", () {
-    mock_clock.mock().run();
+    mockClock.run();
     var sleepFinished = false;
     schedule(() {
       schedule(() => sleep(1).then((_) {
@@ -51,7 +48,7 @@ void _test(message) {
   });
 
   expectTestPasses("nested schedule() calls forward their Future values", () {
-    mock_clock.mock().run();
+    mockClock.run();
     schedule(() {
       expect(schedule(() => 'foo'), completion(equals('foo')));
     });
@@ -67,38 +64,13 @@ void _test(message) {
   }, (error) => expect(error, equals('error')));
 
   expectTestFailure("nested scheduled blocks whose return values are passed to "
-      "wrapFuture should report exceptions once", () {
+      "expect(..., completes) should report exceptions once", () {
     schedule(() {
-      wrapFuture(schedule(() {
+      expect(schedule(() {
         throw 'error';
-      }));
+      }), completes);
 
       return pumpEventQueue();
     });
   }, (error) => expect(error, equals('error')));
-
-  expectTestsPass("a nested task failing shouldn't short-circuit the parent "
-      "task", () {
-    var parentTaskFinishedBeforeOnComplete = false;
-    test('test 1', () {
-      var parentTaskFinished = false;
-      currentSchedule.onComplete.schedule(() {
-        parentTaskFinishedBeforeOnComplete = parentTaskFinished;
-      });
-
-      schedule(() {
-        schedule(() {
-          throw 'error';
-        });
-
-        return sleep(1).then((_) {
-          parentTaskFinished = true;
-        });
-      });
-    });
-
-    test('test 2', () {
-      expect(parentTaskFinishedBeforeOnComplete, isTrue);
-    });
-  }, passing: ['test 2']);
 }

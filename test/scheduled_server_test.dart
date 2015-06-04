@@ -10,17 +10,12 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 import 'package:shelf/shelf.dart' as shelf;
 
 import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestPasses("a server with no handlers does nothing", () {
     new ScheduledServer();
   });
@@ -30,8 +25,8 @@ void _test(message) {
     var server = new ScheduledServer();
     expect(server.url.then((url) => http.read(url.resolve('/hello'))),
         completion(equals('Hello, test!')));
-  }, "'scheduled server 0' received GET /hello when no more requests were "
-      "expected.");
+  }, matches(r"'scheduled server [0-9]+' received GET /hello when no more "
+      r"requests were expected\."));
 
   expectTestPasses("a handler runs when it's hit", () {
     var server = new ScheduledServer();
@@ -73,7 +68,8 @@ void _test(message) {
 
     server.handle('GET', '/hello',
         (request) => new shelf.Response.ok('Hello, test!'));
-  }, "'scheduled server 0' received GET /hello earlier than expected.");
+  }, matches(r"'scheduled server [0-9]+' received GET /hello earlier than "
+      r"expected\."));
 
   expectTestPasses("a handler waits for the immediately prior task to complete "
       "before checking if it's too early", () {
@@ -100,7 +96,8 @@ void _test(message) {
 
     server.handle('GET', '/goodbye',
         (request) => new shelf.Response.ok('Goodbye, test!'));
-  }, "'scheduled server 0' expected GET /goodbye, but got GET /hello.");
+  }, matches(r"'scheduled server [0-9]+' expected GET /goodbye, but got GET "
+      r"/hello\."));
 
   expectServerError("a handler fails if the method is wrong", () {
     var server = new ScheduledServer();
@@ -109,7 +106,8 @@ void _test(message) {
 
     server.handle('GET', '/hello',
         (request) => new shelf.Response.ok('Hello, test!'));
-  }, "'scheduled server 0' expected GET /hello, but got HEAD /hello.");
+  }, matches(r"'scheduled server [0-9]+' expected GET /hello, but got HEAD "
+      r"/hello\."));
 
   expectTestPasses("multiple handlers in series respond to requests in series",
       () {
@@ -152,8 +150,8 @@ void _test(message) {
 
     server.handle('GET', '/hello/2',
         (request) => new shelf.Response.ok('Hello, request 2!'));
-  }, "'scheduled server 0' received GET /hello/3 when no more requests were "
-      "expected.");
+  }, matches(r"'scheduled server [0-9]+' received GET /hello/3 when no more "
+      r"requests were expected\."));
 
   expectServerError("an error in a handler doesn't cause a timeout", () {
     var server = new ScheduledServer();
@@ -165,9 +163,10 @@ void _test(message) {
 }
 
 /// Creates a metatest that runs [testBody], captures its schedule errors, and
-/// asserts that it throws an error with the given [errorMessage].
+/// asserts that it throws an error with the given [errorMessage], which may be
+/// a [String] or a [Matcher].
 void expectServerError(String description, testBody(),
-    String errorMessage) {
+    errorMessage) {
   expectTestFails(description, testBody, (errors) {
     // There can be between one and three errors here. The first is the
     // expected server error. The second is an HttpException that may occur if
@@ -176,7 +175,7 @@ void expectServerError(String description, testBody(),
     // when it's wrapped twice it registers as a different exception each time
     // (because it's given an ad-hoc stack trace).
     expect(errors.length, inInclusiveRange(1, 3));
-    expect(errors[0].error.toString(), equals(errorMessage));
+    expect(errors[0].error.toString(), errorMessage);
 
     for (var i = 1; i < errors.length; i++) {
       if (errors[i].error == errors[0].error) continue;

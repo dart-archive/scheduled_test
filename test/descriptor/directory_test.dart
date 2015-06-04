@@ -12,11 +12,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestPasses("directory().create() creates a directory and its contents",
       () {
     scheduleSandbox();

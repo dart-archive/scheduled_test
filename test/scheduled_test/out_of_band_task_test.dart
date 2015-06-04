@@ -3,21 +3,18 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
 
 import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
+void main() {
+  setUpMockClock();
 
   expectTestPasses("out-of-band schedule() runs its function immediately (but "
       "asynchronously)", () {
-    mock_clock.mock().run();
+    mockClock.run();
     schedule(() {
-      wrapFuture(sleep(1).then((_) {
+      expect(sleep(1).then((_) {
         var nestedScheduleRun = false;
         schedule(() {
           nestedScheduleRun = true;
@@ -26,18 +23,18 @@ void _test(message) {
         expect(nestedScheduleRun, isFalse);
         expect(pumpEventQueue().then((_) => nestedScheduleRun),
             completion(isTrue));
-      }));
+      }), completes);
     });
   });
 
   expectTestPasses("out-of-band schedule() calls block their parent queue", () {
-    mock_clock.mock().run();
+    mockClock.run();
     var scheduleRun = false;
-    wrapFuture(sleep(1).then((_) {
+    expect(sleep(1).then((_) {
       schedule(() => sleep(1).then((_) {
         scheduleRun = true;
       }));
-    }));
+    }), completes);
 
     currentSchedule.onComplete.schedule(() => expect(scheduleRun, isTrue));
   });

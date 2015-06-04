@@ -10,11 +10,7 @@ import 'utils.dart';
 
 String sandbox;
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestPasses("pattern().validate() succeeds if there's a file matching "
       "the pattern and the child entry", () {
     scheduleSandbox();

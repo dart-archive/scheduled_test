@@ -7,11 +7,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestPasses("aborting the schedule before it's started running should "
       "cause no tasks to be run", () {
     schedule(() {
@@ -46,22 +42,6 @@ void _test(message) {
     });
   });
 
-  expectTestPasses("aborting the schedule while it's running shouldn't stop "
-      "out-of-band callbacks", () {
-    var outOfBandFinished = false;
-    schedule(() {
-      wrapFuture(pumpEventQueue().then((_) {
-        outOfBandFinished = true;
-      }));
-
-      currentSchedule.abort();
-    });
-
-    currentSchedule.onComplete.schedule(() {
-      expect(outOfBandFinished, isTrue);
-    });
-  });
-
   expectTestPasses("aborting the schedule in a non-tasks queue should stop "
       "future tasks from running", () {
     currentSchedule.onComplete.schedule(() {
@@ -76,7 +56,7 @@ void _test(message) {
   expectTestFailure("aborting the schedule after an out-of-band error should "
       "still surface the error", () {
     schedule(() {
-      currentSchedule.signalError('error');
+      registerException('error');
       currentSchedule.abort();
     });
   }, (error) => expect(error, equals('error')));

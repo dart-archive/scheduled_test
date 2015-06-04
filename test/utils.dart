@@ -8,19 +8,27 @@ import 'dart:async';
 
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:scheduled_test/src/utils.dart';
-import 'package:scheduled_test/src/mock_clock.dart' as mock_clock;
+import 'package:test/test.dart' as test_pkg;
 
 import 'package:metatest/metatest.dart';
 
 export 'package:scheduled_test/src/utils.dart';
 
+import 'mock_clock.dart';
+
 /// A matcher that validates whether an object is a [TestFailure].
 final isTestFailure = new isInstanceOf<TestFailure>();
+
+MockClock mockClock;
+
+void setUpMockClock() {
+  test_pkg.setUp(() => mockClock = new MockClock());
+}
 
 /// Returns a [Future] that will complete in [milliseconds].
 Future sleep(int milliseconds) {
   var completer = new Completer();
-  mock_clock.newTimer(new Duration(milliseconds: milliseconds), () {
+  mockClock.newTimer(new Duration(milliseconds: milliseconds), () {
     completer.complete();
   });
   return completer.future;

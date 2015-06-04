@@ -26,14 +26,9 @@ build/test/scheduled_test/current_schedule_errors_test: Skip # Issue 21007
 build/test/scheduled_test/nested_task_test: Timeout # Skip 21007
 build/test/scheduled_test/out_of_band_task_test: Skip # Issue 21007
 build/test/scheduled_test/signal_error_test: Skip # Issue 21007
-build/test/scheduled_test/task_return_value_test: Skip # Issue 21007
-build/test/scheduled_test/timeout_test: Skip # Issue 21007
-build/test/scheduled_test/wrap_async_test: Skip # Issue 21007
-build/test/scheduled_test/wrap_future_test: Skip # Issue 21007
 
 [ $compiler == none && ( $runtime == dartium || $runtime == drt || $runtime == ContentShellOnAndroid) ]
 build/test/descriptor/*: RuntimeError # 13921
-build/test/scheduled_future_matchers_test: RuntimeError # 13921
 build/test/scheduled_process_test: RuntimeError # 13921
 build/test/scheduled_stream/stream_matcher_test: RuntimeError # 13921
 build/test/scheduled_test/*: RuntimeError # 13921

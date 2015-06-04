@@ -12,34 +12,13 @@ import 'dart:async';
 
 import 'utils.dart';
 
-/// The mock clock object. New [Timer]s will be mocked if and only if this is
-/// non-`null`.
-Clock _clock;
-
-/// Whether or not mocking is active.
-bool get _mocked => _clock != null;
-
-/// Causes all future calls to [newTimer] to return mock [Timer] objects that
-/// are controlled by the returned [Clock]. This may only be called once.
-Clock mock() {
-  if (_mocked) {
-    throw new StateError("mock_clock.mock() has already been called.");
-  }
-
-  _clock = new Clock._();
-  return _clock;
-}
-
 typedef void TimerCallback();
 
-/// Returns a new (possibly mocked) [Timer]. Works the same as `new Timer`.
-Timer newTimer(Duration duration, TimerCallback callback) =>
-  _mocked ? new _MockTimer(duration, callback) : new Timer(duration, callback);
-
-/// A clock that controls when mocked [Timer]s move forward in time. It starts
-/// at time 0 and advances forward millisecond-by-millisecond, broadcasting each
-/// tick on the [onTick] stream.
-class Clock {
+/// A clock that controls when mocked [Timer]s move forward in time.
+///
+/// It starts at time 0 and advances forward millisecond-by-millisecond,
+/// broadcasting each tick on the [onTick] stream.
+class MockClock {
   /// The current time of the clock, in milliseconds. Starts at 0.
   int get time => _time;
   int _time = 0;
@@ -48,10 +27,14 @@ class Clock {
   StreamController<int> _broadcastController =
       new StreamController<int>.broadcast(sync: true);
 
-  Clock._();
+  MockClock();
 
   /// The stream of millisecond ticks of the clock.
   Stream<int> get onTick => _broadcastController.stream;
+
+  /// Returns a new mocked [Timer].
+  Timer newTimer(Duration duration, TimerCallback callback) =>
+      new _MockTimer(this, duration, callback);
 
   /// Advances the clock forward by [milliseconds]. This works like synchronous
   /// code that takes [milliseconds] to execute; any [Timer]s that are scheduled
@@ -91,9 +74,9 @@ class _MockTimer implements Timer {
   /// The subscription to the [Clock.onTick] stream.
   StreamSubscription _subscription;
 
-  _MockTimer(Duration duration, this._callback)
-      : _time = _clock.time + duration.inMilliseconds {
-    _subscription = _clock.onTick.listen((time) {
+  _MockTimer(MockClock clock, Duration duration, this._callback)
+      : _time = clock.time + duration.inMilliseconds {
+    _subscription = clock.onTick.listen((time) {
       if (time < _time) return;
       _subscription.cancel();
       _callback();

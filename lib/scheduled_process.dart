@@ -106,12 +106,12 @@ class ScheduledProcess {
     _scheduleExceptionCleanup();
 
     var stdoutWithCanceller = _lineStreamWithCanceller(
-        _process.then((p) => Chain.track(p.stdout)));
+        _process.then((p) => p.stdout));
     _stdoutCanceller = stdoutWithCanceller.last;
     _stdoutLog = stdoutWithCanceller.first;
 
     var stderrWithCanceller = _lineStreamWithCanceller(
-        _process.then((p) => Chain.track(p.stderr)));
+        _process.then((p) => p.stderr));
     _stderrCanceller = stderrWithCanceller.last;
     _stderrLog = stderrWithCanceller.first;
 
@@ -159,11 +159,10 @@ class ScheduledProcess {
         workingDirectory = results[2];
         environment = results[3];
         _updateDescription(executable, arguments);
-        return Chain.track(
-            Process.start(executable,
-                          arguments,
-                          workingDirectory: workingDirectory,
-                          environment: environment)).then((process) {
+        return Process.start(executable,
+            arguments,
+            workingDirectory: workingDirectory,
+            environment: environment).then((process) {
           process.stdin.encoding = UTF8;
           return process;
         });
@@ -175,11 +174,7 @@ class ScheduledProcess {
   /// [exitCodeCompleter]. If the process completes earlier than expected, an
   /// exception will be signaled to the schedule.
   void _handleExit(Completer exitCodeCompleter) {
-    // We purposefully avoid using wrapFuture here. If an error occurs while a
-    // process is running, we want the schedule to move to the onComplete queue
-    // where the process will be killed, rather than blocking the tasks queue
-    // waiting for the process to exit.
-    _process.then((p) => Chain.track(p.exitCode)).then((exitCode) {
+    _process.then((p) => p.exitCode).then((exitCode) {
       _actualExitTask = currentSchedule.currentTask;
       exitCodeCompleter.complete(exitCode);
     });
@@ -192,7 +187,7 @@ class ScheduledProcess {
     // Ignore errors from the future. They'll be reported through [schedule].
     streamFuture = streamFuture.catchError((_) => new Stream.fromIterable([]));
     return streamWithCanceller(futureStream(streamFuture)
-        .handleError(currentSchedule.signalError)
+        .handleError(registerException)
         .map((chunk) {
       // TODO(nweiz): Once this becomes integrated with the test package, add a
       // heartbeat here.
@@ -219,8 +214,7 @@ class ScheduledProcess {
         _process.value.kill(ProcessSignal.SIGKILL);
         // Ensure that the onComplete queue waits for the process to actually
         // exit after being killed.
-        wrapFuture(_process.value.exitCode, "waiting for process "
-            "'$description' to die");
+        expect(_process.value.exitCode, completes);
       }
 
       return Future.wait([

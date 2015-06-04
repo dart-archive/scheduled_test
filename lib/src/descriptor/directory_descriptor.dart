@@ -47,8 +47,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   Future create([String parent]) => schedule(() {
     if (parent == null) parent = defaultRoot;
     var fullPath = p.join(parent, name);
-    return Chain.track(new Directory(fullPath).create(recursive: true))
-        .then((_) {
+    return new Directory(fullPath).create(recursive: true).then((_) {
       return Future.wait(
           contents.map((entry) => entry.create(fullPath)).toList());
     });
@@ -65,7 +64,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
     }
 
     return Future.wait(contents.map((entry) {
-      return syncFuture(() => entry.validateNow(fullPath))
+      return new Future.sync(() => entry.validateNow(fullPath))
           .then((_) => null)
           .catchError((e) => e);
     })).then((results) {
@@ -76,7 +75,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   }
 
   Stream<List<int>> load(String pathToLoad) {
-    return futureStream(syncFuture(() {
+    return futureStream(new Future.sync(() {
       if (p.posix.isAbsolute(pathToLoad)) {
         throw new ArgumentError("Can't load absolute path '$pathToLoad'.");
       }

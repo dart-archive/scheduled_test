@@ -78,30 +78,19 @@ class Task {
       }
 
       _state = TaskState.RUNNING;
-      var future = new Future.value().then((_) => fn())
-          .whenComplete(() {
-        if (_childGroup == null || _childGroup.completed) return null;
-        return _childGroup.future;
+      var future = new Future.sync(fn).then((value) {
+        if (_childGroup == null || _childGroup.completed) return value;
+        return _childGroup.future.then((_) => value);
       });
       chainToCompleter(future, _resultCompleter);
       return future;
     };
 
-    // If the parent queue experiences an error before this task has started
-    // running, pipe that error out through [result]. This ensures that we don't
-    // get deadlocked by something like `expect(schedule(...), completes)`.
-    queue.onTasksComplete.catchError((e) {
-      if (state == TaskState.WAITING) _resultCompleter.completeError(e);
-    });
-
-    // catchError makes sure any error thrown by fn isn't top-leveled by virtue
-    // of being passed to the result future.
     result.then((_) {
       _state = TaskState.SUCCESS;
-    }).catchError((e) {
+    }).catchError((_) {
       _state = TaskState.ERROR;
-      throw e;
-    }).catchError((_) {});
+    });
   }
 
   /// Run [fn] as a child of this task. Returns a Future that will complete with
@@ -113,9 +102,7 @@ class Task {
     if (_childGroup == null || _childGroup.completed) {
       _childGroup = new FutureGroup();
     }
-    // Ignore errors in the FutureGroup; they'll get picked up via wrapFuture,
-    // and we don't want them to short-circuit the other Futures.
-    _childGroup.add(task.result.catchError((_) {}));
+    _childGroup.add(task.result);
     task.fn();
     return task.result;
   }

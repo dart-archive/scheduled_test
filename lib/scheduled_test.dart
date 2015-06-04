@@ -10,17 +10,14 @@ library scheduled_test;
 import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
-import 'package:unittest/unittest.dart' as unittest;
+import 'package:test/test.dart' as test_pkg;
 
 import 'src/schedule.dart';
-import 'src/schedule_error.dart';
 
-export 'package:unittest/unittest.dart' hide
-    test, solo_test, group, setUp, tearDown, completes, completion;
+export 'package:test/test.dart' hide test, group, setUp, tearDown;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
-export 'src/scheduled_future_matchers.dart';
 export 'src/task.dart';
 
 /// The [Schedule] for the current test. This is used to add new tasks and
@@ -32,98 +29,71 @@ Schedule _currentSchedule;
 
 /// The user-provided set-up function for the currently-running test.
 ///
-/// This is set for each test during `unittest.setUp`.
+/// This is set for each test during [test_pkg.setUp].
 Function _setUpFn;
 
 /// The user-provided tear-down function for the currently-running test.
 ///
-/// This is set for each test during `unittest.setUp`.
+/// This is set for each test during [test_pkg.setUp].
 Function _tearDownFn;
 
 /// The user-provided set-up function for the current test scope.
-Function _setUpForGroup;
+final _setUpForGroup = new _DeclarerProperty<Function>();
 
 /// The user-provided tear-down function for the current test scope.
-Function _tearDownForGroup;
+final _tearDownForGroup = new _DeclarerProperty<Function>();
+
+/// Whether [_initializeForGroup] has been called in this group scope.
+final _initializedForGroup = new _DeclarerProperty<bool>(false);
+
+/// Whether or not the tests currently being defined are in a group.
+///
+/// This is only true when defining tests, not when executing them.
+final _inGroup = new _DeclarerProperty<bool>(false);
 
 /// Creates a new test case with the given description and body.
 ///
-/// This has the same semantics as [unittest.test].
-///
-/// If [body] returns a [Future], that future will automatically be wrapped with
-/// [wrapFuture].
-void test(String description, body()) =>
-  _test(description, body, unittest.test);
-
-/// Creates a new test case with the given description and body that will be the
-/// only test run in this file.
-///
-/// This has the same semantics as [unittest.solo_test].
-///
-/// If [body] returns a [Future], that future will automatically be wrapped with
-/// [wrapFuture].
-void solo_test(String description, body()) =>
-  _test(description, body, unittest.solo_test);
-
-void _test(String description, body(), Function testFn) {
-  maybeWrapFuture(future, description) {
-    if (future != null) wrapFuture(future, description);
+/// This has the same semantics as [test_pkg.test].
+void test(String description, body()) {
+  maybeWrapFuture(future) {
+    if (future != null) test_pkg.expect(future, test_pkg.completes);
   }
 
-  unittest.ensureInitialized();
   _initializeForGroup();
-  testFn(description, () {
-    var completer = new Completer();
-
-    // Capture this in a local variable in case we capture an out-of-band error
-    // after the schedule completes.
-    var errorHandler;
-
-    Chain.capture(() {
-      _currentSchedule = new Schedule();
-      errorHandler = _currentSchedule.signalError;
-      return currentSchedule.run(() {
-        if (_setUpFn != null) maybeWrapFuture(_setUpFn(), "set up");
-        maybeWrapFuture(body(), "test body");
-        if (_tearDownFn != null) maybeWrapFuture(_tearDownFn(), "tear down");
-      }).catchError((error, stackTrace) {
-        if (error is ScheduleError) {
-          assert(error.schedule.errors.contains(error));
-          assert(error.schedule == currentSchedule);
-          unittest.registerException(error.schedule.errorString());
-        } else {
-          unittest.registerException(error, new Chain.forTrace(stackTrace));
-        }
-      }).then(completer.complete);
-    }, onError: (error, stackTrace) => errorHandler(error, stackTrace));
-
-    return completer.future;
+  test_pkg.test(description, () {
+    _currentSchedule = new Schedule();
+    return currentSchedule.run(() {
+      if (_setUpFn != null) maybeWrapFuture(_setUpFn());
+      maybeWrapFuture(body());
+      if (_tearDownFn != null) maybeWrapFuture(_tearDownFn());
+    }).then((_) {
+      if (currentSchedule.errors.isEmpty) return;
+      // Pass an empty trace so that the test package doesn't try to construct
+      // its own useless stack trace. All the trace information we need is in
+      // the schedule's error string.
+      test_pkg.registerException(currentSchedule.errorString(), new Trace([]));
+    });
   });
 }
 
-/// Whether or not the tests currently being defined are in a group. This is
-/// only true when defining tests, not when executing them.
-bool _inGroup = false;
-
 /// Creates a new named group of tests. This has the same semantics as
-/// [unittest.group].
+/// [test_pkg.group].
 void group(String description, void body()) {
-  unittest.ensureInitialized();
   _initializeForGroup();
-  unittest.group(description, () {
-    var oldSetUp = _setUpForGroup;
-    var oldTearDown = _tearDownForGroup;
-    var wasInitializedForGroup = _initializedForGroup;
-    var wasInGroup = _inGroup;
-    _setUpForGroup = null;
-    _tearDownForGroup = null;
-    _initializedForGroup = false;
-    _inGroup = true;
+  test_pkg.group(description, () {
+    var oldSetUp = _setUpForGroup.value;
+    var oldTearDown = _tearDownForGroup.value;
+    var wasInitializedForGroup = _initializedForGroup.value;
+    var wasInGroup = _inGroup.value;
+    _setUpForGroup.value = null;
+    _tearDownForGroup.value = null;
+    _initializedForGroup.value = false;
+    _inGroup.value = true;
     body();
-    _setUpForGroup = oldSetUp;
-    _tearDownForGroup = oldTearDown;
-    _initializedForGroup = wasInitializedForGroup;
-    _inGroup = wasInGroup;
+    _setUpForGroup.value = oldSetUp;
+    _tearDownForGroup.value = oldTearDown;
+    _initializedForGroup.value = wasInitializedForGroup;
+    _inGroup.value = wasInGroup;
   });
 }
 
@@ -142,22 +112,22 @@ void group(String description, void body()) {
 /// If this is called when a task queue is currently running, it will run [fn]
 /// on the next event loop iteration rather than adding it to a queue. The
 /// current task will not complete until [fn] (and any [Future] it returns) has
-/// finished running. Any errors in [fn] will automatically be handled.
+/// finished running.
 Future schedule(fn(), [String description]) =>
   currentSchedule.tasks.schedule(fn, description);
 
 /// Register a [setUp] function for a test [group].
 ///
-/// This has the same semantics as [unittest.setUp]. Tasks may be scheduled
+/// This has the same semantics as [test_pkg.setUp]. Tasks may be scheduled
 /// using [schedule] within [setUpFn], and [currentSchedule] may be accessed as
 /// well.
 void setUp(setUpFn()) {
-  _setUpForGroup = setUpFn;
+  _setUpForGroup.value = setUpFn;
 }
 
 /// Register a [tearDown] function for a test [group].
 ///
-/// This has the same semantics as [unittest.tearDown]. Tasks may be scheduled
+/// This has the same semantics as [test_pkg.tearDown]. Tasks may be scheduled
 /// using [schedule] within [tearDownFn], and [currentSchedule] may be accessed
 /// as well. Note that [tearDownFn] will be run synchronously after the test
 /// body finishes running, which means it will run before any scheduled tasks
@@ -166,48 +136,34 @@ void setUp(setUpFn()) {
 /// To run code after the schedule has finished running, use
 /// `currentSchedule.onComplete.schedule`.
 void tearDown(tearDownFn()) {
-  _tearDownForGroup = tearDownFn;
+  _tearDownForGroup.value = tearDownFn;
 }
 
-/// Whether [_initializeForGroup] has been called in this group scope.
-bool _initializedForGroup = false;
-
-/// Registers callbacks for [unittest.setUp] and [unittest.tearDown] that set up
+/// Registers callbacks for [test_pkg.setUp] and [test_pkg.tearDown] that set up
 /// and tear down the scheduled test infrastructure and run the user's [setUp]
 /// and [tearDown] callbacks.
 void _initializeForGroup() {
-  if (_initializedForGroup) return;
-  _initializedForGroup = true;
+  if (_initializedForGroup.value) return;
+  _initializedForGroup.value = true;
 
-  var setUpFn = _setUpForGroup;
-  var tearDownFn = _tearDownForGroup;
+  var setUpFn = _setUpForGroup.value;
+  var tearDownFn = _tearDownForGroup.value;
 
-  if (_inGroup) {
-    unittest.setUp(() => _addSetUpTearDown(setUpFn, tearDownFn));
+  if (_inGroup.value) {
+    test_pkg.setUp(() => _addSetUpTearDown(setUpFn, tearDownFn));
     return;
   }
 
-  var oldWrapAsync = unittest.wrapAsync;
-  unittest.setUp(() {
+  test_pkg.setUp(() {
     if (currentSchedule != null) {
       throw new StateError('There seems to be another scheduled test '
           'still running.');
     }
 
-    unittest.wrapAsync = (f, [description]) {
-      // It's possible that this setup is run before a vanilla unittest test
-      // if [unittest.test] is run in the same context as
-      // [scheduled_test.test]. In that case, [currentSchedule] will never be
-      // set and we should forward to the [unittest.wrapAsync].
-      if (currentSchedule == null) return oldWrapAsync(f, description);
-      return currentSchedule.wrapAsync(f, description);
-    };
-
     _addSetUpTearDown(setUpFn, tearDownFn);
   });
 
-  unittest.tearDown(() {
-    unittest.wrapAsync = oldWrapAsync;
+  test_pkg.tearDown(() {
     _currentSchedule = null;
     _setUpFn = null;
     _tearDownFn = null;
@@ -235,20 +191,33 @@ void _addSetUpTearDown(void setUpFn(), void tearDownFn()) {
   }
 }
 
-/// Like [wrapAsync], this ensures that the current task queue waits for
-/// out-of-band asynchronous code, and that errors raised in that code are
-/// handled correctly. However, [wrapFuture] wraps a [Future] chain rather than
-/// a single callback.
+/// A property attached to the test runner's current declarer.
 ///
-/// The returned [Future] completes to the same value or error as [future].
-///
-/// [description] provides an optional description of the future, which is
-/// used when generating error messages.
-Future wrapFuture(Future future, [String description]) {
-  if (currentSchedule == null) {
-    throw new StateError("Unexpected call to wrapFuture with no current "
-        "schedule.");
+/// This is used to scope otherwise-global fields so that multiple instances of
+/// scheduled test can coexist in the same isolate, albeit not at the same time.
+class _DeclarerProperty<T> {
+  /// The expando used to attach the property to the declarers.
+  final _expando = new Expando<T>();
+
+  /// The default value, if any.
+  final T _defaultValue;
+
+  // TODO(nweiz): Use the test API to get the declarer when dart-lang/test#48 is
+  // fixed.
+  /// Returns the value of the property.
+  T get value {
+    var value = _expando[Zone.current[#test.declarer]];
+    return value == null ? _defaultValue : value;
   }
 
-  return currentSchedule.wrapFuture(future, description);
+  /// Sets the value of the property.
+  set value(T value) {
+    _expando[Zone.current[#test.declarer]] = value;
+  }
+
+  /// Creates a new property.
+  ///
+  /// If [defaultValue] is passed, it's the default for when the property is
+  /// unset.
+  _DeclarerProperty([this._defaultValue]);
 }

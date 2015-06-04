@@ -88,18 +88,16 @@ class ScheduledServer {
   /// handler's responsibility to check that the method/path are correct and
   /// that it's being run at the correct time.
   Future<shelf.Response> _handleRequest(shelf.Request request) {
-    return wrapFuture(syncFuture(() {
+    return new Future.sync(() {
       if (_handlers.isEmpty) {
         fail("'$description' received ${request.method} "
             "${request.requestedUri.path} when no more requests were "
             "expected.");
       }
       return _handlers.removeFirst().fn(request);
-    }), 'receiving ${request.method} ${request.requestedUri.path}')
-        .catchError((error) {
-      // Don't let errors bubble up to the shelf handler. It will print them to
-      // stderr, but the user will already be notified via the scheduled_test
-      // infrastructure.
+    }).catchError((error, stackTrace) {
+      registerException(error, stackTrace);
+
       return new shelf.Response.internalServerError(
           body: error.toString(),
           headers: {'content-type': 'text/plain'});

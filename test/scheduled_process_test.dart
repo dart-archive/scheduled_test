@@ -15,11 +15,7 @@ import 'package:scheduled_test/scheduled_test.dart';
 import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
-void main() => initTests(_test);
-
-void _test(message) {
-  initMetatest(message);
-
+void main() {
   expectTestFailure("a process must have kill() or shouldExit() called", () {
     startDartProcess('print("hello!");');
   }, (error) {

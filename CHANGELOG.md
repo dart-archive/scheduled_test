@@ -1,5 +1,17 @@
 ## 0.12.0
 
+* When an error occurs in the tasks queue, the `onComplete` queue will begin
+  running immediately rather than waiting for all outstanding tasks and
+  out-of-band callbacks to complete. This more closely matches the semantics of
+  the underlying test framework and will hopefully be less surprising.
+
+* Errors are now only converted to `ScheduleErrors` when they're added to the
+  `Schedule.errors` list. This means that errors emitted by calls to
+  `schedule()` will no longer be `ScheduleError`s.
+
+* An error thrown in one task will no longer be emitted by the return values of
+  future calls to `schedule()`.
+
 * Remove the `Schedule.onException` queue. This was largely redundant with
   `Schedule.onComplete` and complicated the implementation.
 
@@ -9,6 +21,14 @@
 
 * Remove `Schedule.timeout` and `Schedule.heartbeat`. Timeouts will be handled
   by the `test` package instead.
+
+* Remove `Schedule.signalError`. Use `registerException` from the `test` package
+  instead.
+
+* Remove `wrapFuture`, `Schedule.wrapFuture`, and `Schedule.wrapAsync`. Use
+  `expectAsync`, `completes`, and `completion` from the `test` package instead.
+
+* Remove `TaskQueue.onTasksComplete`.
 
 ## 0.11.8+1
 
