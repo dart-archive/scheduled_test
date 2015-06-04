@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:stack_trace/stack_trace.dart';
-
 import 'scheduled_stream.dart';
 import 'scheduled_test.dart';
 import 'src/utils.dart';

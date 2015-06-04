@@ -5,14 +5,12 @@
 library scheduled_server_test;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:shelf/shelf.dart' as shelf;
 
-import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
 void main() {

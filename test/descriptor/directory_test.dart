@@ -9,7 +9,6 @@ import 'package:path/path.dart' as path;
 import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:scheduled_test/scheduled_test.dart';
 
-import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
 void main() {

@@ -10,7 +10,6 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';
@@ -85,7 +84,8 @@ class _BinaryFileDescriptor extends FileDescriptor {
   Future _validateNow(List<int> actualContents) {
     if (orderedIterableEquals(contents, actualContents)) return null;
     // TODO(nweiz): show a hex dump here if the data is small enough.
-    fail("File '$name' didn't contain the expected binary data.");
+    throw new TestFailure(
+        "File '$name' didn't contain the expected binary data.");
   }
 }
 
@@ -95,8 +95,8 @@ class _StringFileDescriptor extends FileDescriptor {
 
   Future _validateNow(List<int> actualContents) {
     if (orderedIterableEquals(contents, actualContents)) return null;
-    throw _textMismatchMessage(textContents,
-        new String.fromCharCodes(actualContents));
+    throw new TestFailure(_textMismatchMessage(
+        textContents, new String.fromCharCodes(actualContents)));
   }
 
   String _textMismatchMessage(String expected, String actual) {

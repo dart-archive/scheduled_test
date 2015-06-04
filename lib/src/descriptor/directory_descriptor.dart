@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
-import 'package:stack_trace/stack_trace.dart';
 
 import '../../descriptor.dart';
 import '../../scheduled_test.dart';

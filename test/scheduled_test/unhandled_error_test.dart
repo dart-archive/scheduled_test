@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:scheduled_test/scheduled_test.dart';
 
-import 'package:metatest/metatest.dart';
 import '../utils.dart';
 
 void main() {

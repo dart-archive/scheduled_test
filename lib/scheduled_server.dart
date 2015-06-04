@@ -14,7 +14,6 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'scheduled_test.dart';
 import 'src/scheduled_server/handler.dart';
-import 'src/utils.dart';
 
 /// A class representing an HTTP server that's scheduled to run in the course of
 /// the test. This class allows the server's request handling to be scheduled

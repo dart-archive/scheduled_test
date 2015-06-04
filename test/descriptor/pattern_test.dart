@@ -5,7 +5,6 @@
 import 'package:scheduled_test/descriptor.dart' as d;
 import 'package:scheduled_test/scheduled_test.dart';
 
-import 'package:metatest/metatest.dart';
 import 'utils.dart';
 
 String sandbox;

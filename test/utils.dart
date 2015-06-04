@@ -7,7 +7,6 @@ library test_utils;
 import 'dart:async';
 
 import 'package:scheduled_test/scheduled_test.dart';
-import 'package:scheduled_test/src/utils.dart';
 import 'package:test/test.dart' as test_pkg;
 
 import 'package:metatest/metatest.dart';
