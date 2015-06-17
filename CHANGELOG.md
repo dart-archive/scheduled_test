@@ -1,3 +1,8 @@
+## 0.12.1
+
+* Add named parameters to the wrapper `test()` and `group()` methods that
+  forward to the `test` package.
+
 ## 0.12.0
 
 * When an error occurs in the tasks queue, the `onComplete` queue will begin
