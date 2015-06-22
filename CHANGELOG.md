@@ -1,3 +1,7 @@
+## 0.12.1+1
+
+* Fixed usage of `timeout` in `test` and `group`.
+
 ## 0.12.1
 
 * Add named parameters to the wrapper `test()` and `group()` methods that

@@ -54,7 +54,7 @@ final _inGroup = new _DeclarerProperty<bool>(false);
 /// Creates a new test case with the given description and body.
 ///
 /// This has the same semantics as [test_pkg.test].
-void test(String description, body(), {String testOn, Timeout timeout,
+void test(String description, body(), {String testOn, test_pkg.Timeout timeout,
     skip, Map<String, dynamic> onPlatform}) {
   maybeWrapFuture(future) {
     if (future != null) test_pkg.expect(future, test_pkg.completes);
@@ -79,8 +79,8 @@ void test(String description, body(), {String testOn, Timeout timeout,
 
 /// Creates a new named group of tests. This has the same semantics as
 /// [test_pkg.group].
-void group(String description, void body(), {String testOn, Timeout timeout,
-    skip, Map<String, dynamic> onPlatform}) {
+void group(String description, void body(), {String testOn,
+    test_pkg.Timeout timeout, skip, Map<String, dynamic> onPlatform}) {
   _initializeForGroup();
   test_pkg.group(description, () {
     var oldSetUp = _setUpForGroup.value;
