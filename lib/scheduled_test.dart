@@ -204,17 +204,27 @@ class _DeclarerProperty<T> {
   /// The default value, if any.
   final T _defaultValue;
 
+  /// The object to associate with the property.
+  ///
+  /// This will usually be a declarer, but if there is no declarer this will be
+  /// an Expando-safe value that's used to fall back to global properties.
+  Object get _declarer {
+    var declarer = Zone.current[#test.declarer];
+    if (declarer == null) return #declarer;
+    return declarer;
+  }
+
   // TODO(nweiz): Use the test API to get the declarer when dart-lang/test#48 is
   // fixed.
   /// Returns the value of the property.
   T get value {
-    var value = _expando[Zone.current[#test.declarer]];
+    var value = _expando[_declarer];
     return value == null ? _defaultValue : value;
   }
 
   /// Sets the value of the property.
   set value(T value) {
-    _expando[Zone.current[#test.declarer]] = value;
+    _expando[_declarer] = value;
   }
 
   /// Creates a new property.

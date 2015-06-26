@@ -1,3 +1,7 @@
+## 0.12.1+2
+
+* Fix running scheduled tests via `dart path/to/test.dart`.
+
 ## 0.12.1+1
 
 * Fixed usage of `timeout` in `test` and `group`.
