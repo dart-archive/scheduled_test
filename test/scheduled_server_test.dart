@@ -5,11 +5,13 @@
 library scheduled_server_test;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:scheduled_test/scheduled_server.dart';
 import 'package:scheduled_test/scheduled_test.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:shelf_web_socket/shelf_web_socket.dart';
 
 import 'utils.dart';
 
@@ -158,6 +160,23 @@ void main() {
 
     server.handle('GET', '/hello', (request) => fail('oh no'));
   }, 'oh no');
+
+  expectTestPasses("a handler can make a WebSocket connection", () {
+    var server = new ScheduledServer();
+
+    schedule(() {
+      expect(() async {
+        var url = (await server.url).replace(scheme: 'ws');
+        var webSocket = await WebSocket.connect(url.toString());
+        webSocket.add("hello");
+        webSocket.close();
+      }(), completes);
+    });
+
+    server.handle("GET", "/", webSocketHandler(expectAsync((webSocket) {
+      expect(webSocket.first, completion(equals("hello")));
+    })));
+  });
 }
 
 /// Creates a metatest that runs [testBody], captures its schedule errors, and

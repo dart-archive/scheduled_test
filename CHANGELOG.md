@@ -1,3 +1,7 @@
+## 0.12.2
+
+* Support WebSocket connections with `ScheduledServer`s.
+
 ## 0.12.1+2
 
 * Fix running scheduled tests via `dart path/to/test.dart`.

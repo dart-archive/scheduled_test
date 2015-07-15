@@ -51,6 +51,7 @@ class Handler {
               "expected.");
         }
 
+        var hijackException;
         var description = "'${server.description}' handling ${request.method} "
             "${request.url.path}";
         // Use a nested call to [schedule] to help the user tell the difference
@@ -64,10 +65,20 @@ class Handler {
             }
 
             return fn(request);
+          }).catchError((error) {
+            // If there's a HijackException, make sure it only goes to the
+            // shelf adapter, and doesn't get handled by schedule() or
+            // returned through [result]. Otherwise it could be reported as an
+            // error.
+            if (error is! shelf.HijackException) throw error;
+            hijackException = error;
           });
         }, description), _resultCompleter);
 
-        return _resultCompleter.future;
+        return _resultCompleter.future.then((response) {
+          if (hijackException != null) throw hijackException;
+          return response;
+        });
       });
     };
   }

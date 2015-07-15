@@ -95,6 +95,8 @@ class ScheduledServer {
       }
       return _handlers.removeFirst().fn(request);
     }).catchError((error, stackTrace) {
+      if (error is shelf.HijackException) throw error;
+
       registerException(error, stackTrace);
 
       return new shelf.Response.internalServerError(
