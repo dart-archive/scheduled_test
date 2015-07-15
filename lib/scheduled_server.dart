@@ -14,6 +14,7 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'scheduled_test.dart';
 import 'src/scheduled_server/handler.dart';
+import 'src/utils.dart';
 
 /// A class representing an HTTP server that's scheduled to run in the course of
 /// the test. This class allows the server's request handling to be scheduled
@@ -32,6 +33,12 @@ class ScheduledServer {
   /// complete once the schedule reaches the point where that handler was
   /// scheduled.
   final _handlers = new Queue<Handler>();
+
+  /// The map of method-path pairs to unscheduled handlers.
+  ///
+  /// These handlers are run whenever a request with the corresponding method
+  /// and path is made.
+  final _unscheduledHandlers = new Map<Pair<String, String>, shelf.Handler>();
 
   /// The number of servers created. Used for auto-generating descriptions;
   static var _count = 0;
@@ -81,6 +88,15 @@ class ScheduledServer {
     }, "'$description' waiting for $method $path");
   }
 
+  /// Runs [fn] against any requests that are made to [method] and [path].
+  ///
+  /// Unlike [handle], this doesn't schedule a single response; it sets up a
+  /// handler that's active for the duration of the server's existence. The
+  /// handler may be called multiple times or not at all.
+  void handleUnscheduled(String method, String path, shelf.Handler fn) {
+    _unscheduledHandlers[new Pair(method, path)] = fn;
+  }
+
   /// The handler for incoming [shelf.Request]s to this server.
   ///
   /// This dispatches the request to the first handler in the queue. It's that
@@ -88,6 +104,10 @@ class ScheduledServer {
   /// that it's being run at the correct time.
   Future<shelf.Response> _handleRequest(shelf.Request request) {
     return new Future.sync(() {
+      var unscheduled = _unscheduledHandlers[
+          new Pair(request.method, request.requestedUri.path)];
+      if (unscheduled != null) return unscheduled(request);
+
       if (_handlers.isEmpty) {
         fail("'$description' received ${request.method} "
             "${request.requestedUri.path} when no more requests were "

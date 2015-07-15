@@ -1,5 +1,8 @@
 ## 0.12.2
 
+* Add `ScheduledServer.handleUnscheduled`, which allows users to create
+  long-lasting handlers that aren't part of the test schedule.
+
 * Support WebSocket connections with `ScheduledServer`s.
 
 ## 0.12.1+2

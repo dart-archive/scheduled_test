@@ -89,6 +89,28 @@ void main() {
         (request) => new shelf.Response.ok('Hello, test!'));
   });
 
+  expectTestPasses("an unscheduled handler responds to a request multiple "
+      "times", () {
+    var server = new ScheduledServer();
+    server.handleUnscheduled("POST", "/", (request) =>
+        new shelf.Response.ok(request.read()));
+
+    schedule(() async {
+      var response = await http.post(await server.url, body: "one");
+      expect(response.body, equals("one"));
+    });
+
+    schedule(() async {
+      var response = await http.post(await server.url, body: "two");
+      expect(response.body, equals("two"));
+    });
+
+    schedule(() async {
+      var response = await http.post(await server.url, body: "three");
+      expect(response.body, equals("three"));
+    });
+  });
+
   expectServerError("a handler fails if the url is wrong", () {
     var server = new ScheduledServer();
     expect(server.url.then((url) => http.read(url.resolve('/hello'))),
