@@ -36,8 +36,10 @@ Future sleep(int milliseconds) {
 /// Creates a metatest with [body] and asserts that it passes.
 ///
 /// This is like [expectTestsPass], but the [test] is set up automatically.
-void expectTestPasses(String description, body()) =>
-  expectTestsPass(description, () => test('test', body));
+void expectTestPasses(String description, body(), {String testOn,
+    Timeout timeout, skip, Map<String, dynamic> onPlatform}) =>
+  expectTestsPass(description, () => test('test', body),
+      testOn: testOn, timeout: timeout, skip: skip, onPlatform: onPlatform);
 
 /// Creates a metatest that runs [testBody], captures its schedule errors, and
 /// passes them to [validator].
@@ -45,7 +47,8 @@ void expectTestPasses(String description, body()) =>
 /// [testBody] is expected to produce an error, while [validator] is expected to
 /// produce none.
 void expectTestFails(String description, Future testBody(),
-    void validator(List<ScheduleError> errors)) {
+    void validator(List<ScheduleError> errors), {String testOn, Timeout timeout,
+    skip, Map<String, dynamic> onPlatform}) {
   expectTestsPass(description, () {
     var errors;
     test('test body', () {
@@ -60,15 +63,21 @@ void expectTestFails(String description, Future testBody(),
       expect(errors, everyElement(new isInstanceOf<ScheduleError>()));
       validator(errors);
     });
-  }, passing: ['validate errors']);
+  },
+      passing: ['validate errors'],
+      testOn: testOn,
+      timeout: timeout,
+      skip: skip,
+      onPlatform: onPlatform);
 }
 
 /// Like [expectTestFails], but expects there to be only a single error and
 /// unwraps that error before passing it to [validator].
 void expectTestFailure(String description, Future testBody(),
-    void validator(error))  {
+    void validator(error), {String testOn, Timeout timeout, skip,
+    Map<String, dynamic> onPlatform})  {
   expectTestFails(description, testBody, (errors) {
     expect(errors, hasLength(1));
     validator(errors.single.error);
-  });
+  }, testOn: testOn, timeout: timeout, skip: skip, onPlatform: onPlatform);
 }

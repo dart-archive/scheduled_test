@@ -171,7 +171,7 @@ print("ready");
     process.signal(ProcessSignal.SIGHUP);
     process.stdout.expect('HUP');
     process.kill();
-  });
+  }, testOn: "!windows");
 }
 
 ScheduledProcess startDartProcess(String script) {

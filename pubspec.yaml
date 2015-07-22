@@ -23,5 +23,5 @@ dependencies:
   # features it provides.
   test: '>=0.12.3 <0.12.4'
 dev_dependencies:
-  metatest: "^0.2.0"
+  metatest: "^0.2.1"
   shelf_web_socket: "^0.0.1"
