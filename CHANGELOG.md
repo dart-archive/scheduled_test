@@ -1,3 +1,7 @@
+## 0.12.3
+
+* Update the dependency on `test` to include `0.12.5`.
+
 ## 0.12.2
 
 * Add `ScheduledServer.handleUnscheduled`, which allows users to create
