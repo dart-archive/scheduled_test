@@ -1,3 +1,7 @@
+## 0.12.4+1
+
+* Update the dependency on `test` to include `0.12.6`.
+
 ## 0.12.4
 
 * Update the dependency on `test` to include `0.12.5`.
