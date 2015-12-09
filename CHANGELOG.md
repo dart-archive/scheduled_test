@@ -1,3 +1,7 @@
+## 0.12.4+2
+
+* Declare compatibility with `http_multi_server` version `2.0.0`.
+
 ## 0.12.4+1
 
 * Update the dependency on `test` to include `0.12.6`.
