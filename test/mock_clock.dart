@@ -6,8 +6,6 @@
 /// Application code only needs to use [newTimer] to get an instance of [Timer].
 /// Then test code can call [mock] to mock out all new [Timer] instances so that
 /// they're controllable by a returned [Clock] object.
-library mock_clock;
-
 import 'dart:async';
 
 import 'utils.dart';

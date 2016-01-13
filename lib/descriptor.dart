@@ -64,8 +64,6 @@
 ///
 ///       // ...
 ///     }
-library scheduled_test.descriptor;
-
 import 'dart:async';
 
 import 'package:path/path.dart' as path;

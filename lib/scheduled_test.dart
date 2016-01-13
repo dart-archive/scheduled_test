@@ -5,8 +5,6 @@
 // TODO(nweiz): Add support for calling [schedule] while the schedule is already
 // running.
 // TODO(nweiz): Port the non-Pub-specific scheduled test libraries from Pub.
-library scheduled_test;
-
 import 'dart:async';
 
 import 'package:stack_trace/stack_trace.dart';
