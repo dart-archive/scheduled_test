@@ -1,3 +1,7 @@
+## 0.12.4+3
+
+* Declare compatibility with `test` version `0.12.7`.
+
 ## 0.12.4+2
 
 * Declare compatibility with `http_multi_server` version `2.0.0`.
