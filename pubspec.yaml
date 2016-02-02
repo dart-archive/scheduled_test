@@ -1,5 +1,5 @@
 name: scheduled_test
-version: 0.12.4+4
+version: 0.12.4+5
 author: Dart Team <misc@dartlang.org>
 description: >
   A package for writing readable tests of asynchronous behavior.
@@ -15,13 +15,13 @@ dependencies:
   http_multi_server: '>=1.0.0 <3.0.0'
   http: '>=0.9.0 <0.12.0'
   path: '>=0.9.0 <2.0.0'
-  shelf: '>=0.5.2 <0.7.0'
+  shelf: '>=0.5.2 <0.8.0'
   stack_trace: '>=0.9.1 <2.0.0'
 
   # Because scheduled_test exports test, it needs to keep its version constraint
   # tight to ensure that a constraint on scheduled_test properly constraints all
   # features it provides.
-  test: '>=0.12.5 <0.12.9'
+  test: '>=0.12.5 <0.12.10'
 dev_dependencies:
   metatest: "^0.2.1"
   shelf_web_socket: "^0.0.1"

@@ -1,3 +1,9 @@
+## 0.12.4+5
+
+* Declare compatibility with `shelf` version `0.7.0`.
+
+* Declare compatibility with `test` version `0.12.9`.
+
 ## 0.12.4+4
 
 * Declare compatibility with `test` version `0.12.8`.
