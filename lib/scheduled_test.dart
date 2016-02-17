@@ -53,7 +53,7 @@ final _inGroup = new _DeclarerProperty<bool>(false);
 ///
 /// This has the same semantics as [test_pkg.test].
 void test(String description, body(), {String testOn, test_pkg.Timeout timeout,
-    skip, Map<String, dynamic> onPlatform}) {
+    skip, tags, Map<String, dynamic> onPlatform}) {
   maybeWrapFuture(future) {
     if (future != null) test_pkg.expect(future, test_pkg.completes);
   }
@@ -72,13 +72,18 @@ void test(String description, body(), {String testOn, test_pkg.Timeout timeout,
       // the schedule's error string.
       test_pkg.registerException(currentSchedule.errorString(), new Trace([]));
     });
-  }, testOn: testOn, timeout: timeout, skip: skip, onPlatform: onPlatform);
+  },
+      testOn: testOn,
+      timeout: timeout,
+      skip: skip,
+      tags: tags,
+      onPlatform: onPlatform);
 }
 
 /// Creates a new named group of tests. This has the same semantics as
 /// [test_pkg.group].
 void group(String description, void body(), {String testOn,
-    test_pkg.Timeout timeout, skip, Map<String, dynamic> onPlatform}) {
+    test_pkg.Timeout timeout, skip, tags, Map<String, dynamic> onPlatform}) {
   _initializeForGroup();
   test_pkg.group(description, () {
     var oldSetUp = _setUpForGroup.value;
@@ -94,7 +99,12 @@ void group(String description, void body(), {String testOn,
     _tearDownForGroup.value = oldTearDown;
     _initializedForGroup.value = wasInitializedForGroup;
     _inGroup.value = wasInGroup;
-  }, testOn: testOn, timeout: timeout, skip: skip, onPlatform: onPlatform);
+  },
+      testOn: testOn,
+      timeout: timeout,
+      skip: skip,
+      tags: tags,
+      onPlatform: onPlatform);
 }
 
 /// Schedules a task, [fn], to run asynchronously as part of the main task queue
