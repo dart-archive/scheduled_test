@@ -1,3 +1,7 @@
+## 0.12.5+1
+
+* Declare compatibility with `test` version `0.12.11`.
+
 ## 0.12.5
 
 * Add a `tags` parameter to `test()` and `group()`.
