@@ -6,6 +6,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:async/async.dart';
+import 'package:collection/collection.dart';
+
 import 'scheduled_stream.dart';
 import 'scheduled_test.dart';
 import 'src/utils.dart';
@@ -133,10 +136,10 @@ class ScheduledProcess {
                              arguments,
                              workingDirectory,
                              environment) {
-    var exitCodeCompleter = new Completer();
+    var exitCodeCompleter = new Completer<int>();
     _exitCode = new ValueFuture(exitCodeCompleter.future);
 
-    _process = new ValueFuture(schedule(() {
+    _process = new ValueFuture(schedule/*<Future<Process>>*/(() async {
       if (!_endScheduled) {
         throw new StateError("Scheduled process '$description' must "
             "have shouldExit() or kill() called before the test is run.");
@@ -144,25 +147,27 @@ class ScheduledProcess {
 
       _handleExit(exitCodeCompleter);
 
-      return Future.wait([
+      var results = await Future.wait([
         new Future.sync(() => executable),
         awaitObject(arguments),
         new Future.sync(() => workingDirectory),
         new Future.sync(() => environment)
-      ]).then((results) {
-        executable = results[0];
-        arguments = results[1];
-        workingDirectory = results[2];
-        environment = results[3];
-        _updateDescription(executable, arguments);
-        return Process.start(executable,
-            arguments,
-            workingDirectory: workingDirectory,
-            environment: environment).then((process) {
-          process.stdin.encoding = UTF8;
-          return process;
-        });
-      });
+      ]);
+
+      var concreteExecutable = results[0] as String;
+      var concreteArguments =
+          DelegatingList.typed/*<String>*/(results[1] as List);
+      var concreteWorkingDirectory = results[2] as String;
+      var concreteEnvironment = results[3] == null
+          ? null
+          : DelegatingMap.typed/*<String, String>*/(results[3] as Map);
+      _updateDescription(concreteExecutable, concreteArguments);
+      var process = await Process.start(concreteExecutable,
+          concreteArguments,
+          workingDirectory: concreteWorkingDirectory,
+          environment: concreteEnvironment);
+      process.stdin.encoding = UTF8;
+      return process;
     }, "starting process '$description'"));
   }
 
@@ -181,16 +186,17 @@ class ScheduledProcess {
   Pair<Stream<String>, StreamCanceller> _lineStreamWithCanceller(
       Future<Stream<List<int>>> streamFuture) {
     // Ignore errors from the future. They'll be reported through [schedule].
-    streamFuture = streamFuture.catchError((_) => new Stream.fromIterable([]));
-    return streamWithCanceller(futureStream(streamFuture)
+    streamFuture = DelegatingFuture.typed(
+        streamFuture.catchError((_) => new Stream.fromIterable([])));
+    return streamWithCanceller(StreamCompleter.fromFuture(streamFuture)
         .handleError(registerException)
         .map((chunk) {
       // TODO(nweiz): Once this becomes integrated with the test package, add a
       // heartbeat here.
       return chunk;
     })
-        .transform(_encoding.decoder)
-        .transform(new LineSplitter()));
+        .transform(converterTransformer(_encoding.decoder))
+        .transform(converterTransformer(new LineSplitter())));
   }
 
   /// Schedule an exception handler that will clean up the process and provide

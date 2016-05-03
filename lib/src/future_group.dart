@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:async/async.dart';
+
 /// A completer that waits until all added [Future]s complete.
 // TODO(rnystrom): Copied from web_components. Remove from here when it gets
 // added to dart:core. (See #6626.)
@@ -22,7 +24,7 @@ class FutureGroup<T> {
     }
 
     _pending++;
-    futures.add(task.then((value) {
+    futures.add(DelegatingFuture.typed(task.then((value) {
       if (completed) return;
 
       _pending--;
@@ -37,7 +39,7 @@ class FutureGroup<T> {
 
       completed = true;
       _completer.completeError(error, stackTrace);
-    }));
+    })));
 
     return task;
   }

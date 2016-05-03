@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:stack_trace/stack_trace.dart';
 
@@ -82,9 +83,9 @@ class Fallible<E> {
         hasValue = false;
 
   /// Returns a completed Future with the same value or error as [this].
-  Future toFuture() {
+  Future<E> toFuture() {
     if (hasValue) return new Future.value(value);
-    return new Future.error(error, stackTrace);
+    return new Future<E>.error(error, stackTrace);
   }
 
   String toString() {
@@ -145,53 +146,6 @@ bool orderedIterableEquals(Iterable iterable1, Iterable iterable2) {
   }
 }
 
-/// Returns a buffered stream that will emit the same values as the stream
-/// returned by [future] once [future] completes.
-///
-/// If [future] completes to an error, the return value will emit that error and
-/// then close.
-///
-/// If [broadcast] is true, a broadcast stream is returned. This assumes that
-/// the stream returned by [future] will be a broadcast stream as well.
-/// [broadcast] defaults to false.
-Stream futureStream(Future<Stream> future, {bool broadcast: false}) {
-  var subscription;
-  var controller;
-
-  future = future.catchError((e, stackTrace) {
-    // Since [controller] is synchronous, it's likely that emitting an error
-    // will cause it to be cancelled before we call close.
-    if (controller != null) controller.addError(e, stackTrace);
-    if (controller != null) controller.close();
-    controller = null;
-  });
-
-  onListen() {
-    future.then((stream) {
-      if (controller == null) return;
-      subscription = stream.listen(
-          controller.add,
-          onError: controller.addError,
-          onDone: controller.close);
-    });
-  }
-
-  onCancel() {
-    if (subscription != null) subscription.cancel();
-    subscription = null;
-    controller = null;
-  }
-
-  if (broadcast) {
-    controller = new StreamController.broadcast(
-        sync: true, onListen: onListen, onCancel: onCancel);
-  } else {
-    controller = new StreamController(
-        sync: true, onListen: onListen, onCancel: onCancel);
-  }
-  return controller.stream;
-}
-
 /// Returns the first element of a [StreamIterator].
 ///
 /// If the [StreamIterator] has no elements, the result is a state error.
@@ -250,9 +204,9 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
 /// Creates two single-subscription [Stream]s that each emit all values and
 /// errors from [stream]. This is useful if [stream] is single-subscription but
 /// multiple subscribers are necessary.
-Pair<Stream, Stream> tee(Stream stream) {
-  var controller1 = new StreamController(sync: true);
-  var controller2 = new StreamController(sync: true);
+Pair<Stream/*<T>*/, Stream/*<T>*/> tee/*<T>*/(Stream/*<T>*/ stream) {
+  var controller1 = new StreamController/*<T>*/(sync: true);
+  var controller2 = new StreamController/*<T>*/(sync: true);
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
@@ -263,7 +217,7 @@ Pair<Stream, Stream> tee(Stream stream) {
     controller1.close();
     controller2.close();
   });
-  return new Pair<Stream, Stream>(controller1.stream, controller2.stream);
+  return new Pair(controller1.stream, controller2.stream);
 }
 
 /// Takes a simple data structure (composed of [Map]s, [Iterable]s, scalar
@@ -302,4 +256,11 @@ bool fullMatch(String string, Pattern pattern) {
 /// folded together.
 String terseTraceString(StackTrace trace) {
   return new Chain.forTrace(trace).terse.toString().trim();
+}
+
+StreamTransformer/*<S2, T2>*/ converterTransformer/*<S1, T1, S2, T2>*/(
+    ChunkedConverter/*<S1, T1, S2, T2>*/ converter) {
+  return new StreamTransformer((stream, cancelOnError) {
+    return converter.bind(stream).listen(null, cancelOnError: cancelOnError);
+  });
 }

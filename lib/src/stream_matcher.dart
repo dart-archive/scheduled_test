@@ -123,18 +123,16 @@ class _NextValueMatcher extends StreamMatcher {
   _NextValueMatcher(matcher)
       : _matcher = wrapMatcher(matcher);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
-    return stream.hasNext.then((hasNext) {
-      if (!hasNext) {
-        return new StringDescription("unexpected end of stream");
-      }
-      return stream.next().then((value) {
-        var matchState = {};
-        if (_matcher.matches(value, matchState)) return null;
-        return _matcher.describeMismatch(value, new StringDescription(),
-            matchState, false);
-      });
-    });
+  Future<Description> tryMatch(ScheduledStream stream) async {
+    if (!await stream.hasNext) {
+      return new StringDescription("unexpected end of stream");
+    }
+
+    var value = await stream.next();
+    var matchState = {};
+    if (_matcher.matches(value, matchState)) return null;
+    return _matcher.describeMismatch(value, new StringDescription(),
+        matchState, false);
   }
 
   String toString() => _matcher.describe(new StringDescription()).toString();
@@ -148,28 +146,21 @@ class _NextValuesMatcher extends StreamMatcher {
   _NextValuesMatcher(this._n, matcher)
       : _matcher = wrapMatcher(matcher);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
+  Future<Description> tryMatch(ScheduledStream stream) async {
     var collectedValues = [];
-    collectValues(count) {
-      if (count == 0) return null;
+    for (var i = 0; i < _n; i++) {
+      if (!await stream.hasNext) {
+        return new StringDescription('unexpected end of stream');
+      }
 
-      return stream.hasNext.then((hasNext) {
-        if (!hasNext) return new StringDescription('unexpected end of stream');
-
-        return stream.next().then((value) {
-          collectedValues.add(value);
-          return collectValues(count - 1);
-        });
-      });
+      var value = await stream.next();
+      collectedValues.add(value);
     }
 
-    return collectValues(_n).then((failure) {
-      if (failure != null) return failure;
-      var matchState = {};
-      if (_matcher.matches(collectedValues, matchState)) return null;
-      return _matcher.describeMismatch(collectedValues, new StringDescription(),
-          matchState, false);
-    });
+    var matchState = {};
+    if (_matcher.matches(collectedValues, matchState)) return null;
+    return _matcher.describeMismatch(collectedValues, new StringDescription(),
+        matchState, false);
   }
 
   String toString() {
@@ -187,22 +178,21 @@ class _InOrderMatcher extends StreamMatcher {
       : _matchers = streamMatchers.map((matcher) =>
           new StreamMatcher.wrap(matcher)).toList();
 
-  Future<Description> tryMatch(ScheduledStream stream) {
+  Future<Description> tryMatch(ScheduledStream stream) async {
     var matchers = new Queue.from(_matchers);
 
-    matchNext() {
-      if (matchers.isEmpty) return new Future.value();
+    while (!matchers.isEmpty) {
       var matcher = matchers.removeFirst();
-      return matcher.tryMatch(stream).then((failure) {
-        if (failure == null) return matchNext();
-        var newFailure = new StringDescription(
-              'matcher #${_matchers.length - matchers.length} failed');
-        if (failure.length != 0) newFailure.add(':\n$failure');
-        return newFailure;
-      });
+      var failure = await matcher.tryMatch(stream);
+      if (failure == null) continue;
+
+      var newFailure = new StringDescription(
+            'matcher #${_matchers.length - matchers.length} failed');
+      if (failure.length != 0) newFailure.add(':\n$failure');
+      return newFailure;
     }
 
-    return matchNext();
+    return null;
   }
 
   String toString() => _matchers
@@ -217,19 +207,17 @@ class _ConsumeThroughMatcher extends StreamMatcher {
   _ConsumeThroughMatcher(streamMatcher)
       : _matcher = new StreamMatcher.wrap(streamMatcher);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
-    consumeNext() {
-      return stream.hasNext.then((hasNext) {
-        if (!hasNext) return new StringDescription("unexpected end of stream");
-
-        return _matcher.hasMatch(stream).then((failure) {
-          if (failure != null) return stream.next().then((_) => consumeNext());
-          return _matcher.tryMatch(stream);
-        });
-      });
+  Future<Description> tryMatch(ScheduledStream stream) async {
+    while (await stream.hasNext) {
+      var failure = await _matcher.hasMatch(stream);
+      if (failure == null) {
+        return _matcher.tryMatch(stream);
+      } else {
+        stream.next();
+      }
     }
 
-    return consumeNext();
+    return new StringDescription("unexpected end of stream");
   }
 
   String toString() {
@@ -249,19 +237,11 @@ class _ConsumeWhileMatcher extends StreamMatcher {
   _ConsumeWhileMatcher(matcher)
       : _matcher = new StreamMatcher.wrap(matcher);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
-    consumeNext() {
-      return stream.hasNext.then((hasNext) {
-        if (!hasNext) return new Future.value();
-
-        return _matcher.hasMatch(stream).then((failure) {
-          if (failure != null) return new Future.value();
-          return _matcher.tryMatch(stream).then((_) => consumeNext());
-        });
-      });
+  Future<Description> tryMatch(ScheduledStream stream) async {
+    while (await stream.hasNext && await _matcher.hasMatch(stream) == null) {
+      await _matcher.tryMatch(stream);
     }
-
-    return consumeNext();
+    return null;
   }
 
   String toString() {
@@ -283,36 +263,35 @@ class _EitherMatcher extends StreamMatcher {
       : _matcher1 = new StreamMatcher.wrap(streamMatcher1),
         _matcher2 = new StreamMatcher.wrap(streamMatcher2);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
+  Future<Description> tryMatch(ScheduledStream stream) async {
     var stream1 = stream.fork();
     var stream2 = stream.fork();
 
-    return Future.wait([
+    var failures = await Future.wait([
       _matcher1.tryMatch(stream1).whenComplete(stream1.close),
       _matcher2.tryMatch(stream2).whenComplete(stream2.close)
-    ]).then((failures) {
-      var failure1 = failures.first;
-      var failure2 = failures.last;
+    ]);
 
-      // If both matchers matched, use the one that consumed more of the stream.
-      if (failure1 == null && failure2 == null) {
-        if (stream1.emittedValues.length >= stream2.emittedValues.length) {
-          return _matcher1.tryMatch(stream);
-        } else {
-          return _matcher2.tryMatch(stream);
-        }
-      } else if (failure1 == null) {
+    var failure1 = failures.first;
+    var failure2 = failures.last;
+
+    // If both matchers matched, use the one that consumed more of the stream.
+    if (failure1 == null && failure2 == null) {
+      if (stream1.emittedValues.length >= stream2.emittedValues.length) {
         return _matcher1.tryMatch(stream);
-      } else if (failure2 == null) {
-        return _matcher2.tryMatch(stream);
       } else {
-        return new StringDescription('both\n')
-            .add(prefixLines(failure1.toString(), prefix: '  '))
-            .add('\nand\n')
-            .add(prefixLines(failure2.toString(), prefix: '  '))
-            .toString();
+        return _matcher2.tryMatch(stream);
       }
-    });
+    } else if (failure1 == null) {
+      return _matcher1.tryMatch(stream);
+    } else if (failure2 == null) {
+      return _matcher2.tryMatch(stream);
+    } else {
+      return new StringDescription('both\n')
+          .add(prefixLines(failure1.toString(), prefix: '  '))
+          .add('\nand\n')
+          .add(prefixLines(failure2.toString(), prefix: '  '));
+    }
   }
 
   String toString() {
@@ -331,11 +310,9 @@ class _AllowMatcher extends StreamMatcher {
   _AllowMatcher(streamMatcher)
       : _matcher = new StreamMatcher.wrap(streamMatcher);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
-    return _matcher.hasMatch(stream).then((failure) {
-      if (failure != null) return null;
-      return _matcher.tryMatch(stream);
-    });
+  Future<Description> tryMatch(ScheduledStream stream) async {
+    if (await _matcher.hasMatch(stream) != null) return null;
+    return _matcher.tryMatch(stream);
   }
 
   String toString() {
@@ -352,23 +329,18 @@ class _NeverMatcher extends StreamMatcher {
   _NeverMatcher(streamMatcher)
     : _matcher = new StreamMatcher.wrap(streamMatcher);
 
-  Future<Description> tryMatch(ScheduledStream stream) {
-    consumeNext() {
-      return stream.hasNext.then((hasNext) {
-        if (!hasNext) return new Future.value();
+  Future<Description> tryMatch(ScheduledStream stream) async {
+    while (await stream.hasNext) {
+      var failure = await _matcher.hasMatch(stream);
+      if (failure == null) {
+        return new StringDescription("matched\n")
+            .add(prefixLines(_matcher.toString(), prefix: '  '));
+      }
 
-        return _matcher.hasMatch(stream).then((failure) {
-          if (failure != null) {
-            return stream.next().then((_) => consumeNext());
-          }
-
-          return new StringDescription("matched\n")
-              .add(prefixLines(_matcher.toString(), prefix: '  '));
-        });
-      });
+      stream.next();
     }
 
-    return consumeNext();
+    return null;
   }
 
   String toString() =>

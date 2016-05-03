@@ -51,13 +51,13 @@ class ScheduledServer {
     var id = _count++;
     if (description == null) description = 'scheduled server $id';
 
-    var scheduledServer;
-    scheduledServer = new ScheduledServer._(schedule(() {
-      return HttpMultiServer.loopback(0).then((server) {
-        shelf_io.serveRequests(server, scheduledServer._handleRequest);
-        currentSchedule.onComplete.schedule(() => server.close(force: true));
-        return server;
-      });
+    ScheduledServer scheduledServer;
+    scheduledServer = new ScheduledServer._(
+        schedule/*<Future<HttpServer>>*/(() async {
+      var server = await HttpMultiServer.loopback(0);
+      shelf_io.serveRequests(server, scheduledServer._handleRequest);
+      currentSchedule.onComplete.schedule(() => server.close(force: true));
+      return server;
     }, "starting '$description'"), description);
     return scheduledServer;
   }
@@ -92,7 +92,7 @@ class ScheduledServer {
   /// handler that's active for the duration of the server's existence. The
   /// handler may be called multiple times or not at all.
   void handleUnscheduled(String method, String path, shelf.Handler fn) {
-    _unscheduledHandlers[new Pair(method, path)] = fn;
+    _unscheduledHandlers[new Pair<String, String>(method, path)] = fn;
   }
 
   /// The handler for incoming [shelf.Request]s to this server.
@@ -100,8 +100,8 @@ class ScheduledServer {
   /// This dispatches the request to the first handler in the queue. It's that
   /// handler's responsibility to check that the method/path are correct and
   /// that it's being run at the correct time.
-  Future<shelf.Response> _handleRequest(shelf.Request request) {
-    return new Future.sync(() {
+  Future<shelf.Response> _handleRequest(shelf.Request request) async {
+    try {
       var unscheduled = _unscheduledHandlers[
           new Pair(request.method, request.requestedUri.path)];
       if (unscheduled != null) return unscheduled(request);
@@ -111,8 +111,8 @@ class ScheduledServer {
             "${request.requestedUri.path} when no more requests were "
             "expected.");
       }
-      return _handlers.removeFirst().fn(request);
-    }).catchError((error, stackTrace) {
+      return await _handlers.removeFirst().fn(request);
+    } catch (error, stackTrace) {
       if (error is shelf.HijackException) throw error;
 
       registerException(error, stackTrace);
@@ -120,6 +120,6 @@ class ScheduledServer {
       return new shelf.Response.internalServerError(
           body: error.toString(),
           headers: {'content-type': 'text/plain'});
-    });
+    }
   }
 }

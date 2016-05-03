@@ -11,7 +11,7 @@ import 'future_group.dart';
 import 'schedule.dart';
 import 'utils.dart';
 
-typedef Future TaskBody();
+typedef Future<T> TaskBody<T>();
 
 /// A single task to be run as part of a [TaskQueue].
 ///
@@ -20,7 +20,7 @@ typedef Future TaskBody();
 /// sequence as part of that [TaskQueue]. **Nested tasks** are created by
 /// calling [TaskQueue.schedule] once the queue is already running, and are run
 /// in parallel as part of a top-level task.
-class Task {
+class Task<T> {
   /// The queue to which this [Task] belongs.
   final TaskQueue queue;
 
@@ -42,7 +42,7 @@ class Task {
   final Task parent;
 
   /// The body of the task.
-  TaskBody fn;
+  TaskBody<T> fn;
 
   /// The current state of [this].
   TaskState get state => _state;
@@ -56,8 +56,8 @@ class Task {
 
   /// A Future that will complete to the return value of [fn] once this task
   /// finishes running.
-  Future get result => _resultCompleter.future;
-  final _resultCompleter = new Completer();
+  Future<T> get result => _resultCompleter.future;
+  final _resultCompleter = new Completer<T>();
 
   final Chain stackChain;
 
@@ -76,7 +76,7 @@ class Task {
       }
 
       _state = TaskState.RUNNING;
-      var future = new Future.sync(fn).then((value) {
+      var future = new Future<T>.sync(fn).then((value) {
         if (_childGroup == null || _childGroup.completed) return value;
         return _childGroup.future.then((_) => value);
       });
@@ -94,8 +94,8 @@ class Task {
   /// Run [fn] as a child of this task. Returns a Future that will complete with
   /// the result of the child task. This task will not complete until [fn] has
   /// finished.
-  Future runChild(fn(), String description) {
-    var task = new Task._child(fn, description, this);
+  Future/*<S>*/ runChild/*<S>*/(/*=S*/ fn(), String description) {
+    var task = new Task/*<S>*/._child(fn, description, this);
     _children.add(task);
     if (_childGroup == null || _childGroup.completed) {
       _childGroup = new FutureGroup();

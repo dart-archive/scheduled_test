@@ -196,7 +196,7 @@ void main() {
     });
 
     server.handle("GET", "/", webSocketHandler(expectAsync((webSocket) {
-      expect(webSocket.first, completion(equals("hello")));
+      expect(webSocket.stream.first, completion(equals("hello")));
     })));
   });
 }
@@ -204,7 +204,7 @@ void main() {
 /// Creates a metatest that runs [testBody], captures its schedule errors, and
 /// asserts that it throws an error with the given [errorMessage], which may be
 /// a [String] or a [Matcher].
-void expectServerError(String description, testBody(),
+void expectServerError(String description, Future testBody(),
     errorMessage) {
   expectTestFails(description, testBody, (errors) {
     // There can be between one and three errors here. The first is the

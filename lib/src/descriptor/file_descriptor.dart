@@ -70,7 +70,7 @@ abstract class FileDescriptor extends Descriptor implements ReadableDescriptor {
   /// expected contents of the descriptor.
   void _validateNow(List<int> binaryContents);
 
-  Stream<List<int>> read() => new Future.value(contents).asStream();
+  Stream<List<int>> read() => new Future<List<int>>.value(contents).asStream();
 
   String describe() => name;
 }

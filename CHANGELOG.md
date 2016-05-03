@@ -1,3 +1,7 @@
+## 0.12.5+5
+
+* Fix all strong mode warnings.
+
 ## 0.12.5+4
 
 * Actually declare compatibility with `test` version `0.12.13`.

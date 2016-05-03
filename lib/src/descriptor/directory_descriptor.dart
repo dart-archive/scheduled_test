@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:path/path.dart' as p;
 
 import '../../descriptor.dart';
@@ -18,8 +19,8 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   final List<Descriptor> contents;
 
   DirectoryDescriptor(String name, Iterable<Descriptor> contents)
-      : super(name),
-        contents = contents.toList();
+      : contents = contents.toList(),
+        super(name);
 
   /// Creates a directory descriptor named [name] based on a directory on the
   /// physical directory at [path].
@@ -72,7 +73,7 @@ class DirectoryDescriptor extends Descriptor implements LoadableDescriptor {
   }
 
   Stream<List<int>> load(String pathToLoad) {
-    return futureStream(new Future.sync(() {
+    return StreamCompleter.fromFuture(new Future.sync(() {
       if (p.posix.isAbsolute(pathToLoad)) {
         throw new ArgumentError("Can't load absolute path '$pathToLoad'.");
       }

@@ -33,8 +33,8 @@ class PatternDescriptor extends Descriptor {
   final EntryCreator _fn;
 
   PatternDescriptor(Pattern pattern, this._fn)
-      : super('$pattern'),
-        pattern = pattern;
+      : pattern = pattern,
+        super('$pattern');
 
   /// Validates that there is some filesystem entity in [parent] that matches
   /// [pattern] and the child entry. This finds all entities in [parent]

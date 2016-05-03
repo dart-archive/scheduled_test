@@ -48,7 +48,7 @@ void expectTestFails(String description, Future testBody(),
     void validator(List<ScheduleError> errors), {String testOn, Timeout timeout,
     skip, Map<String, dynamic> onPlatform}) {
   expectTestsPass(description, () {
-    var errors;
+    List<ScheduleError> errors;
     test('test body', () {
       currentSchedule.onComplete.schedule(() {
         errors = currentSchedule.errors;

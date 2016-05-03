@@ -18,6 +18,8 @@ export 'src/schedule.dart';
 export 'src/schedule_error.dart';
 export 'src/task.dart';
 
+typedef void _NonaryFunction();
+
 /// The [Schedule] for the current test. This is used to add new tasks and
 /// inspect the state of the schedule.
 ///
@@ -28,18 +30,18 @@ Schedule _currentSchedule;
 /// The user-provided set-up function for the currently-running test.
 ///
 /// This is set for each test during [test_pkg.setUp].
-Function _setUpFn;
+_NonaryFunction _setUpFn;
 
 /// The user-provided tear-down function for the currently-running test.
 ///
 /// This is set for each test during [test_pkg.setUp].
-Function _tearDownFn;
+_NonaryFunction _tearDownFn;
 
 /// The user-provided set-up function for the current test scope.
-final _setUpForGroup = new _DeclarerProperty<Function>();
+final _setUpForGroup = new _DeclarerProperty<_NonaryFunction>();
 
 /// The user-provided tear-down function for the current test scope.
-final _tearDownForGroup = new _DeclarerProperty<Function>();
+final _tearDownForGroup = new _DeclarerProperty<_NonaryFunction>();
 
 /// Whether [_initializeForGroup] has been called in this group scope.
 final _initializedForGroup = new _DeclarerProperty<bool>(false);
@@ -123,7 +125,7 @@ void group(String description, void body(), {String testOn,
 /// on the next event loop iteration rather than adding it to a queue. The
 /// current task will not complete until [fn] (and any [Future] it returns) has
 /// finished running.
-Future schedule(fn(), [String description]) =>
+Future/*<T>*/ schedule/*<T>*/(/*=T*/ fn(), [String description]) =>
   currentSchedule.tasks.schedule(fn, description);
 
 /// Register a [setUp] function for a test [group].
