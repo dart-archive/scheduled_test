@@ -12,7 +12,8 @@ import 'package:test/test.dart' as test_pkg;
 
 import 'src/schedule.dart';
 
-export 'package:test/test.dart' hide test, group, setUp, tearDown;
+export 'package:test/test.dart'
+    hide test, group, setUp, tearDown, setUpAll, tearDownAll;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
@@ -107,6 +108,56 @@ void group(String description, void body(), {String testOn,
       skip: skip,
       tags: tags,
       onPlatform: onPlatform);
+}
+
+/// Registers a function to be run once before all tests.
+///
+/// This has the same semantics as [test_pkg.setUpAll].
+void setUpAll(body()) {
+  maybeWrapFuture(future) {
+    if (future != null) test_pkg.expect(future, test_pkg.completes);
+  }
+
+  _initializeForGroup();
+  test_pkg.setUpAll(() {
+    _currentSchedule = new Schedule();
+    return currentSchedule.run(() {
+      maybeWrapFuture(body());
+    }).then((_) {
+      if (currentSchedule.errors.isEmpty) return;
+      // Pass an empty trace so that the test package doesn't try to construct
+      // its own useless stack trace. All the trace information we need is in
+      // the schedule's error string.
+      test_pkg.registerException(currentSchedule.errorString(), new Trace([]));
+    }).whenComplete(() {
+      _currentSchedule = null;
+    });
+  });
+}
+
+/// Registers a function to be run once after all tests.
+///
+/// This has the same semantics as [test_pkg.tearDownAll].
+void tearDownAll(body()) {
+  maybeWrapFuture(future) {
+    if (future != null) test_pkg.expect(future, test_pkg.completes);
+  }
+
+  _initializeForGroup();
+  test_pkg.tearDownAll(() {
+    _currentSchedule = new Schedule();
+    return currentSchedule.run(() {
+      maybeWrapFuture(body());
+    }).then((_) {
+      if (currentSchedule.errors.isEmpty) return;
+      // Pass an empty trace so that the test package doesn't try to construct
+      // its own useless stack trace. All the trace information we need is in
+      // the schedule's error string.
+      test_pkg.registerException(currentSchedule.errorString(), new Trace([]));
+    }).whenComplete(() {
+      _currentSchedule = null;
+    });
+  });
 }
 
 /// Schedules a task, [fn], to run asynchronously as part of the main task queue
