@@ -1,3 +1,7 @@
+## 0.12.8
+
+* Support scheduling in `setUpAll()` and `tearDownAll()`.
+
 ## 0.12.7
 
 * Support `test` version `0.12.17`.
