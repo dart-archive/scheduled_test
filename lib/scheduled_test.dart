@@ -118,7 +118,6 @@ void setUpAll(body()) {
     if (future != null) test_pkg.expect(future, test_pkg.completes);
   }
 
-  _initializeForGroup();
   test_pkg.setUpAll(() {
     _currentSchedule = new Schedule();
     return currentSchedule.run(() {
@@ -143,7 +142,6 @@ void tearDownAll(body()) {
     if (future != null) test_pkg.expect(future, test_pkg.completes);
   }
 
-  _initializeForGroup();
   test_pkg.tearDownAll(() {
     _currentSchedule = new Schedule();
     return currentSchedule.run(() {

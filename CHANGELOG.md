@@ -1,3 +1,8 @@
+## 0.12.8+1
+
+* Make `setUpAll()` and `tearDownAll()` work with normal `setUp()` and
+  `tearDown()` calls.
+
 ## 0.12.8
 
 * Support scheduling in `setUpAll()` and `tearDownAll()`.
