@@ -1,3 +1,7 @@
+## 0.12.9
+
+* Support `test` version `0.12.18`.
+
 ## 0.12.8+1
 
 * Make `setUpAll()` and `tearDownAll()` work with normal `setUp()` and
