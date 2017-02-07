@@ -1,3 +1,7 @@
+## 0.12.10
+
+* Support `test` version `0.12.19`.
+
 ## 0.12.9
 
 * Support `test` version `0.12.18`.
