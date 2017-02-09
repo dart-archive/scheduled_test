@@ -1,3 +1,7 @@
+## 0.12.10+1
+
+* Hide the `StreamMatcher` class from the `test` package.
+
 ## 0.12.10
 
 * Support `test` version `0.12.19`.
