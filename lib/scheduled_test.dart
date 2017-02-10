@@ -13,7 +13,7 @@ import 'package:test/test.dart' as test_pkg;
 import 'src/schedule.dart';
 
 export 'package:test/test.dart'
-    hide test, group, setUp, tearDown, setUpAll, tearDownAll;
+    hide test, group, setUp, tearDown, setUpAll, tearDownAll, StreamMatcher;
 
 export 'src/schedule.dart';
 export 'src/schedule_error.dart';
