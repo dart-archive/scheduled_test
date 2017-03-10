@@ -32,7 +32,7 @@ class Task<T> {
   /// A [FutureGroup] that will complete once all current child tasks are
   /// finished running. This will be null if no child tasks are currently
   /// running.
-  FutureGroup _childGroup;
+  FutureGroup<T> _childGroup;
 
   /// A description of this task. Used for debugging. May be `null`.
   final String description;
@@ -76,7 +76,7 @@ class Task<T> {
       }
 
       _state = TaskState.RUNNING;
-      var future = new Future<T>.sync(fn).then((value) {
+      var future = new Future<T>.sync(fn).then<T>((value) {
         if (_childGroup == null || _childGroup.completed) return value;
         return _childGroup.future.then((_) => value);
       });
@@ -94,8 +94,8 @@ class Task<T> {
   /// Run [fn] as a child of this task. Returns a Future that will complete with
   /// the result of the child task. This task will not complete until [fn] has
   /// finished.
-  Future/*<S>*/ runChild/*<S>*/(/*=S*/ fn(), String description) {
-    var task = new Task/*<S>*/._child(fn, description, this);
+  Future<T> runChild(TaskBody fn, String description) {
+    var task = new Task<T>._child(fn, description, this);
     _children.add(task);
     if (_childGroup == null || _childGroup.completed) {
       _childGroup = new FutureGroup();

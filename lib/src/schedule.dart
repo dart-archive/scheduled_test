@@ -17,11 +17,11 @@ import 'utils.dart';
 ///
 /// This has two task queues: [tasks] and [onComplete]. It also provides
 /// visibility into the current state of the schedule.
-class Schedule {
+class Schedule<T> {
   /// The main task queue for the schedule. These tasks are run before the other
   /// queues and generally constitute the main test body.
-  TaskQueue get tasks => _tasks;
-  TaskQueue _tasks;
+  TaskQueue<T> get tasks => _tasks;
+  TaskQueue<T> _tasks;
 
   /// The queue of tasks to run after [tasks] has run. This queue will run
   /// whether or not an error occurred. If one did, it will be available in
@@ -29,14 +29,14 @@ class Schedule {
   ///
   /// If an error occurs in a task in this queue, all further tasks will be
   /// skipped.
-  TaskQueue get onComplete => _onComplete;
-  TaskQueue _onComplete;
+  TaskQueue<T> get onComplete => _onComplete;
+  TaskQueue<T> _onComplete;
 
   /// Returns the [Task] that's currently executing, or `null` if there is no
   /// such task. This will be `null` both before the schedule starts running and
   /// after it's finished.
-  Task get currentTask => _currentTask;
-  Task _currentTask;
+  Task<T> get currentTask => _currentTask;
+  Task<T> _currentTask;
 
   /// The current state of the schedule.
   ScheduleState get state => _state;
@@ -63,14 +63,14 @@ class Schedule {
   ///
   /// One of [tasks] or [onComplete]. This starts as [tasks], and can only be
   /// `null` after the schedule is done.
-  TaskQueue get currentQueue =>
+  TaskQueue<T> get currentQueue =>
     _state == ScheduleState.DONE ? null : _currentQueue;
-  TaskQueue _currentQueue;
+  TaskQueue<T> _currentQueue;
 
   /// Creates a new schedule with empty task queues.
   Schedule() {
-    _tasks = new TaskQueue._("tasks", this);
-    _onComplete = new TaskQueue._("onComplete", this);
+    _tasks = new TaskQueue<T>._("tasks", this);
+    _onComplete = new TaskQueue<T>._("onComplete", this);
     _currentQueue = _tasks;
   }
 
@@ -180,16 +180,16 @@ class ScheduleState {
 }
 
 /// A queue of asynchronous tasks to execute in order.
-class TaskQueue {
+class TaskQueue<T> {
   /// The tasks in the queue.
-  List<Task> get contents => new UnmodifiableListView<Task>(_contents);
-  final _contents = new Queue<Task>();
+  List<Task<T>> get contents => new UnmodifiableListView<Task<T>>(_contents);
+  final _contents = new Queue<Task<T>>();
 
   /// The name of the queue, for debugging purposes.
   final String name;
 
   /// The [Schedule] that created this queue.
-  final Schedule _schedule;
+  final Schedule<T> _schedule;
 
   /// Whether to stop running after the current task.
   bool _aborted = false;
@@ -220,21 +220,21 @@ class TaskQueue {
   /// known as a "nested task". The current task will not complete until [fn]
   /// (and any [Future] it returns) has finished running. Nested tasks run in
   /// parallel, unlike top-level tasks which run in sequence.
-  Future/*<T>*/ schedule/*<T>*/(/*=T*/ fn(), [String description]) {
+  Future<T> schedule(T fn(), [String description]) {
     if (isRunning) {
       var task = _schedule.currentTask;
-      var wrappedFn = () {
-        var whenDone = test.expectAsync(() {});
+      TaskBody<T> wrappedFn = () {
+        var whenDone = test.expectAsync0(() {});
         return new Future.value().then((_) => fn()).then((result) {
           whenDone();
           return result;
         });
       };
       if (task == null) return wrappedFn();
-      return task.runChild/*<Future<T>>*/(wrappedFn, description);
+      return task.runChild(wrappedFn, description);
     }
 
-    var task = new Task/*<T>*/(fn, description, this);
+    var task = new Task<T>(fn, description, this);
     _contents.add(task);
     return task.result;
   }
