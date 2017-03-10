@@ -10,7 +10,7 @@ description: >
 
 homepage: https://github.com/dart-lang/scheduled_test
 environment:
-  sdk: '>=1.16.0 <2.0.0'
+  sdk: '>=1.22.0 <2.0.0'
 dependencies:
   async: '^1.10.0'
   collection: '^1.5.0'
@@ -23,7 +23,7 @@ dependencies:
   # Because scheduled_test exports test, it needs to keep its version constraint
   # tight to ensure that a constraint on scheduled_test properly constraints all
   # features it provides.
-  test: '>=0.12.19 <0.12.20'
+  test: '>=0.12.20 <0.12.21'
 dev_dependencies:
   metatest: "^0.2.1"
   shelf_web_socket: "^0.2.0"

@@ -141,9 +141,8 @@ class _MatcherFileDescriptor extends FileDescriptor {
       : _isBinary = isBinary == true ? true : false,
         super._(name, <int>[]);
 
-  void _validateNow(List<int> actualContents) {
+  void _validateNow(List<int> actualContents) =>
       expect(
           _isBinary ? actualContents : new String.fromCharCodes(actualContents),
           _matcher);
-  }
 }
