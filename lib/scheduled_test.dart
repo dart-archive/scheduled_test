@@ -174,7 +174,7 @@ void tearDownAll(body()) {
 /// on the next event loop iteration rather than adding it to a queue. The
 /// current task will not complete until [fn] (and any [Future] it returns) has
 /// finished running.
-Future/*<T>*/ schedule/*<T>*/(/*=T*/ fn(), [String description]) =>
+Future<T> schedule<T>(T fn(), [String description]) =>
   currentSchedule.tasks.schedule(fn, description);
 
 /// Register a [setUp] function for a test [group].

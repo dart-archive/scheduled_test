@@ -220,21 +220,21 @@ class TaskQueue {
   /// known as a "nested task". The current task will not complete until [fn]
   /// (and any [Future] it returns) has finished running. Nested tasks run in
   /// parallel, unlike top-level tasks which run in sequence.
-  Future/*<T>*/ schedule/*<T>*/(/*=T*/ fn(), [String description]) {
+  Future<T> schedule<T>(T fn(), [String description]) {
     if (isRunning) {
       var task = _schedule.currentTask;
-      var wrappedFn = () {
-        var whenDone = test.expectAsync(() {});
+      TaskBody<T> wrappedFn = () {
+        var whenDone = test.expectAsync0(() {});
         return new Future.value().then((_) => fn()).then((result) {
           whenDone();
           return result;
         });
       };
       if (task == null) return wrappedFn();
-      return task.runChild/*<Future<T>>*/(wrappedFn, description);
+      return task.runChild(wrappedFn, description);
     }
 
-    var task = new Task/*<T>*/(fn, description, this);
+    var task = new Task<T>(fn, description, this);
     _contents.add(task);
     return task.result;
   }

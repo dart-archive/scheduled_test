@@ -258,8 +258,8 @@ String terseTraceString(StackTrace trace) {
   return new Chain.forTrace(trace).terse.toString().trim();
 }
 
-StreamTransformer/*<S2, T2>*/ converterTransformer/*<S1, T1, S2, T2>*/(
-    ChunkedConverter/*<S1, T1, S2, T2>*/ converter) {
+StreamTransformer<S, T> converterTransformer<S, T>(
+    Converter<S, T> converter) {
   return new StreamTransformer((stream, cancelOnError) {
     return converter.bind(stream).listen(null, cancelOnError: cancelOnError);
   });

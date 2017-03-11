@@ -28,9 +28,9 @@ class ValueFuture<T> implements Future<T> {
   }
 
   Stream<T> asStream() => _future.asStream();
-  Future catchError(Function onError, {bool test(Object error)}) =>
+  Future<T> catchError(Function onError, {bool test(Object error)}) =>
     _future.catchError(onError, test: test);
-  Future/*<S>*/ then/*<S>*/(/*=S*/ onValue(T value), {Function onError}) =>
+  Future<S> then<S>(FutureOr<S> onValue(T value), {Function onError}) =>
     _future.then(onValue, onError: onError);
   Future<T> whenComplete(action()) => _future.whenComplete(action);
   Future<T> timeout(Duration timeLimit, {void onTimeout()}) =>
