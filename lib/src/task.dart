@@ -94,7 +94,7 @@ class Task<T> {
   /// Run [fn] as a child of this task. Returns a Future that will complete with
   /// the result of the child task. This task will not complete until [fn] has
   /// finished.
-  Future<S> runChild<S>(TaskBody<S> fn, String description) {
+  Future<S> runChild<S>(Future<S> fn(), String description) {
     var task = new Task<S>._child(fn, description, this);
     _children.add(task);
     if (_childGroup == null || _childGroup.completed) {
