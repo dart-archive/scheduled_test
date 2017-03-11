@@ -31,7 +31,7 @@ void main() {
         expect(outOfBandRun, isTrue);
       });
 
-      pumpEventQueue().then(expectAsync((_) {
+      pumpEventQueue().then(expectAsync1((_) {
         outOfBandRun = true;
       }));
     });
@@ -45,12 +45,12 @@ void main() {
       currentSchedule.onComplete.schedule(() {
         expect(outOfBand1Run, isTrue);
 
-        pumpEventQueue().then(expectAsync((_) {
+        pumpEventQueue().then(expectAsync1((_) {
           outOfBand2Run = true;
         }));
       });
 
-      pumpEventQueue().then(expectAsync((_) {
+      pumpEventQueue().then(expectAsync1((_) {
         outOfBand1Run = true;
       }));
     });
@@ -61,7 +61,7 @@ void main() {
   expectTestFailure('an out-of-band callback in the onComplete queue blocks '
       'the test', () {
     currentSchedule.onComplete.schedule(() {
-      pumpEventQueue().then(expectAsync((_) => throw 'error'));
+      pumpEventQueue().then(expectAsync1((_) => throw 'error'));
     });
   }, (error) => expect(error, equals('error')));
 
@@ -103,7 +103,7 @@ void main() {
         onCompleteRun = true;
       });
 
-      pumpEventQueue().then(expectAsync((_) => expect('foo', equals('bar'))));
+      pumpEventQueue().then(expectAsync1((_) => expect('foo', equals('bar'))));
     });
 
     test('test 2', () {
