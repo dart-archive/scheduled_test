@@ -1,5 +1,5 @@
 name: scheduled_test
-version: 0.12.10+1
+version: 0.12.11
 author: Dart Team <misc@dartlang.org>
 description: >
   A package for writing readable tests of asynchronous behavior.
