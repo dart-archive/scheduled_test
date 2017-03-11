@@ -195,7 +195,7 @@ void main() {
       }(), completes);
     });
 
-    server.handle("GET", "/", webSocketHandler(expectAsync((webSocket) {
+    server.handle("GET", "/", webSocketHandler(expectAsync1((webSocket) {
       expect(webSocket.stream.first, completion(equals("hello")));
     })));
   });

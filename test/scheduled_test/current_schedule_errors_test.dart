@@ -26,17 +26,17 @@ void main() {
 
   expectTestFailure('currentSchedule.errors contains an error passed into '
       'registerException out-of-band', () {
-    pumpEventQueue().then(expectAsync((_) => registerException('error')));
+    pumpEventQueue().then(expectAsync1((_) => registerException('error')));
   }, (error) => expect(error, equals('error')));
 
   expectTestFailure('currentSchedule.errors contains only the first '
       'out-of-band error from the main task queue in onComplete', () {
     mockClock.run();
 
-    sleep(1).then(expectAsync((_) {
+    sleep(1).then(expectAsync1((_) {
       throw 'error1';
     }));
-    sleep(2).then(expectAsync((_) {
+    sleep(2).then(expectAsync1((_) {
       throw 'error2';
     }));
   }, (error) => expect(error, equals('error1')));
