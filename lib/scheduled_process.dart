@@ -188,15 +188,15 @@ class ScheduledProcess {
     // Ignore errors from the future. They'll be reported through [schedule].
     streamFuture = DelegatingFuture.typed(
         streamFuture.catchError((_) => new Stream.fromIterable([])));
-    return streamWithCanceller(StreamCompleter.fromFuture(streamFuture)
-        .handleError(registerException)
-        .map((chunk) {
-      // TODO(nweiz): Once this becomes integrated with the test package, add a
-      // heartbeat here.
-      return chunk;
-    })
-        .transform(converterTransformer(_encoding.decoder))
-        .transform(converterTransformer(new LineSplitter())));
+    return streamWithCanceller(new LineSplitter().bind(
+        StreamCompleter.fromFuture(streamFuture)
+            .handleError(registerException)
+            .map((chunk) {
+          // TODO(nweiz): Once this becomes integrated with the test package,
+          // add a heartbeat here.
+          return chunk;
+        })
+            .transform(converterTransformer(_encoding.decoder))));
   }
 
   /// Schedule an exception handler that will clean up the process and provide
