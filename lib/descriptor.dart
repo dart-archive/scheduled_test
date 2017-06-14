@@ -2,68 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A library for declaratively describing a filesystem structure, usually for
-/// the purpose of creating or validating it as part of a scheduled test.
+/// This package is deprecated. See [the README][] for details.
 ///
-/// You can use [dir] and [file] to define a filesystem structure. Then, you can
-/// call [Descriptor.create] to schedule a task that will create that structure
-/// on the physical filesystem, or [Descriptor.validate] to schedule an
-/// assertion that that structure exists. For example:
-///
-///     import 'dart:io';
-///
-///     import 'package:scheduled_test/descriptor.dart' as d;
-///     import 'package:scheduled_test/scheduled_test.dart';
-///
-///     void main() {
-///       test('Directory.rename', () {
-///         d.dir('parent', [
-///           d.file('sibling', 'sibling-contents'),
-///           d.dir('old-name', [
-///             d.file('child', 'child-contents')
-///           ])
-///         ]).create();
-///
-///         schedule(() =>
-///             new Directory('parent/old-name').rename('parent/new-name'));
-///
-///         d.dir('parent', [
-///           d.file('sibling', 'sibling-contents'),
-///           d.dir('new-name', [
-///             d.file('child', 'child-contents')
-///           ])
-///         ]).validate();
-///       });
-///     }
-///
-/// Usually you don't want your tests cluttering up your working directory with
-/// fake filesystem entities. You can set [defaultRoot] to configure where
-/// filesystem descriptors are rooted on the physical filesystem. For example,
-/// to create a temporary directory for each test:
-///
-///     import 'package:scheduled_test/descriptor.dart' as d;
-///     import 'package:scheduled_test/scheduled_test.dart';
-///
-///     void main() {
-///       setUp(() {
-///         var tempDir;
-///         schedule(() {
-///           return Directory.systemTemp
-///                           .createTemp('my_temp_dir_')
-///                           .then((dir) {
-///             tempDir = dir;
-///             d.defaultRoot = tempDir.path;
-///           });
-///         });
-///
-///         currentSchedule.onComplete.schedule(() {
-///           d.defaultRoot = null;
-///           return tempDir.delete(recursive: true);
-///         });
-///       });
-///
-///       // ...
-///     }
+/// [the README]: https://pub.dartlang.org/packages/scheduled_test
+@deprecated
+library scheduled_test.descriptor;
+
 import 'dart:async';
 
 import 'package:path/path.dart' as path;

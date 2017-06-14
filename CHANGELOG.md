@@ -1,10 +1,15 @@
+## 0.12.11+1
+
+* **This package is now deprecated** and will not be maintained going forward.
+  See [the README][] for details.
+
+[the README]: https://pub.dartlang.org/packages/scheduled_test
+
 ## 0.12.11
 
 * Fix most strong mode errors and warnings.
 * Support `test` version `0.12.20`
 * Minimum Dart SDK version is now `1.22.0`.
-
-## 0.12.10+1
 
 * Hide the `StreamMatcher` class from the `test` package.
 
