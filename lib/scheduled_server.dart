@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// This package is deprecated. See [the README][] for details.
+///
+/// [the README]: https://pub.dartlang.org/packages/scheduled_test
+@deprecated
+library scheduled_test.scheduled_server;
+
 import 'dart:async';
 import 'dart:collection';
 import 'dart:io';
