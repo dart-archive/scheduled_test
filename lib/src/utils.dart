@@ -204,9 +204,9 @@ Pair<Stream, StreamCanceller> streamWithCanceller(Stream stream) {
 /// Creates two single-subscription [Stream]s that each emit all values and
 /// errors from [stream]. This is useful if [stream] is single-subscription but
 /// multiple subscribers are necessary.
-Pair<Stream/*<T>*/, Stream/*<T>*/> tee/*<T>*/(Stream/*<T>*/ stream) {
-  var controller1 = new StreamController/*<T>*/(sync: true);
-  var controller2 = new StreamController/*<T>*/(sync: true);
+Pair<Stream<T>, Stream<T>> tee<T>(Stream<T> stream) {
+  var controller1 = new StreamController<T>(sync: true);
+  var controller2 = new StreamController<T>(sync: true);
   stream.listen((value) {
     controller1.add(value);
     controller2.add(value);
