@@ -145,7 +145,7 @@ class ScheduledProcess {
     var exitCodeCompleter = new Completer<int>();
     _exitCode = new ValueFuture(exitCodeCompleter.future);
 
-    _process = new ValueFuture(schedule/*<Future<Process>>*/(() async {
+    _process = new ValueFuture(schedule<Future<Process>>(() async {
       if (!_endScheduled) {
         throw new StateError("Scheduled process '$description' must "
             "have shouldExit() or kill() called before the test is run.");
@@ -162,11 +162,11 @@ class ScheduledProcess {
 
       var concreteExecutable = results[0] as String;
       var concreteArguments =
-          DelegatingList.typed/*<String>*/(results[1] as List);
+          DelegatingList.typed<String>(results[1] as List);
       var concreteWorkingDirectory = results[2] as String;
       var concreteEnvironment = results[3] == null
           ? null
-          : DelegatingMap.typed/*<String, String>*/(results[3] as Map);
+          : DelegatingMap.typed<String, String>(results[3] as Map);
       _updateDescription(concreteExecutable, concreteArguments);
       var process = await Process.start(concreteExecutable,
           concreteArguments,

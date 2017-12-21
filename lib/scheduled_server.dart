@@ -59,7 +59,7 @@ class ScheduledServer {
 
     ScheduledServer scheduledServer;
     scheduledServer = new ScheduledServer._(
-        schedule/*<Future<HttpServer>>*/(() async {
+        schedule<Future<HttpServer>>(() async {
       var server = await HttpMultiServer.loopback(0);
       shelf_io.serveRequests(server, scheduledServer._handleRequest);
       currentSchedule.onComplete.schedule(() => server.close(force: true));
