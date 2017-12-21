@@ -87,4 +87,11 @@ class _MockTimer implements Timer {
     _subscription.cancel();
     _subscription = null;
   }
+
+  @override
+  // TODO: Dart 2.0 requires this method to be implemented.
+  // ignore: override_on_non_overriding_getter
+  int get tick {
+    throw new UnimplementedError("tick");
+  }
 }
